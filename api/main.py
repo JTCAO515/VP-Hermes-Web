@@ -39,7 +39,7 @@ DB_URL = os.getenv("DATABASE_URL")
 if DB_URL:
     engine = create_engine(DB_URL, pool_pre_ping=True)
 else:
-    engine = create_engine("sqlite:///data.sqlite3", connect_args={"check_same_thread": False})
+    engine = create_engine("sqlite:////tmp/data.sqlite3", connect_args={"check_same_thread": False})
 
 SessionLocal = sessionmaker(bind=engine, autoflush=False)
 
@@ -311,7 +311,10 @@ else{{setTimeout(()=>location.href='/',3000)}}
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    Base.metadata.create_all(bind=engine)
+    try:
+        Base.metadata.create_all(bind=engine)
+    except Exception as e:
+        print(f"[WARN] DB init failed: {e}", flush=True)
     yield
 
 app = FastAPI(title="VisePanda", version="0.1.0", lifespan=lifespan)
