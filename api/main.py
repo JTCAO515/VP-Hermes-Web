@@ -292,9 +292,10 @@ def page_chat() -> str:
 @keyframes shimmer{{0%{{background-position:200%0}}100%{{background-position:-200%0}}}}
 .trip-card{{border:1px solid var(--line);border-radius:12px;padding:14px;margin:6px 0;background:rgba(125,211,252,.03)}}
 .trip-card b{{color:var(--accent)}}
+.time{{font-size:10px;color:var(--muted);margin-top:4px}}
 </style>{_inject_config()}</head><body>
 <div class="bg-shanshui"></div>
-<header><div><span class="dot"></span><span class="name">VisePanda</span></div><div><a href="/" class="btn">Home</a></div></header>
+<header><div><span class="dot"></span><span class="name">VisePanda</span></div><div><a href="#" onclick="event.preventDefault();clearChat()" class="btn" style="margin-right:8px">Clear</a><a href="/" class="btn">Home</a></div></header>
 <div class="layout"><main style="flex:1;display:flex;flex-direction:column"><div id="thread"></div></main></div>
 <div class="chat-footer"><div id="quickReplies"></div><form id="msgForm"><input id="msgInput" type="text" placeholder="Type a message…" autofocus><button id="sendBtn" type="submit">Send</button></form></div>
 <script src="https://esm.sh/@supabase/supabase-js@2"></script>
@@ -302,19 +303,21 @@ def page_chat() -> str:
 let sb=null,tripId=null;
 async function i(){{sb=supabase.createClient(W.__SUPABASE_CONFIG__.supabase_url,W.__SUPABASE_CONFIG__.supabase_anon_key)}}
 const W=window,Q=s=>document.querySelector(s),H=s=>s.replace(/[&<>"']/g,c=>({{'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}}[c])),M=t=>{{let h=t.replace(/\\*\\*(.+?)\\*\\*/g,'<b>$1</b>').replace(/\\*(.+?)\\*/g,'<i>$1</i>').replace(/\\n\\n/g,'</p><p>').replace(/\\n/g,'<br>');if(t.includes('**Day '))h='<div class=trip-card>'+h+'</div>';return h}}
-function msg(r,c){{const d=document.createElement('div');d.className='msg '+r;d.innerHTML='<div class=bubble>'+M(c)+'</div>';Q('#thread').appendChild(d);Q('#thread').scrollTop=Q('#thread').scrollHeight;return d}}
+function msg(r,c){{const d=document.createElement('div');d.className='msg '+r;const t=new Date().toLocaleTimeString([],{{hour:'2-digit',minute:'2-digit'}});d.innerHTML='<div class=bubble>'+M(c)+'</div><div class=time>'+t+'</div>';Q('#thread').appendChild(d);smartScroll();return d}}
 async function loadHistory(){{if(!tripId)return;try{{const r=await fetch('/api/trips/'+tripId+'/messages');if(!r.ok)return;const msgs=await r.json();for(const m of msgs){{msg(m.role==='user'?'user':'bot',m.content)}}}}catch(e){{}}}}
-async function send(t){{const sbb=Q('#sendBtn');sbb.disabled=true;sbb.textContent='...';msg('user',t);tripId=tripId||'t_'+crypto.randomUUID();const b=msg('bot','<div class=skeleton style=width:60%></div><div class=skeleton style=width:40%;margin-top:8px></div><div class=skeleton style=width:50%;margin-top:8px></div>');let f='';try{{
+async function send(t){{const sbb=Q('#sendBtn');sbb.disabled=true;sbb.textContent='...';msg('user',t);tripId=tripId||'t_'+crypto.randomUUID();localStorage.setItem('vp_trip',tripId);const b=msg('bot','<div class=skeleton style=width:60%></div><div class=skeleton style=width:40%;margin-top:8px></div><div class=skeleton style=width:50%;margin-top:8px></div>');let f='';try{{
 const s=await sb?.auth.getSession();const tok=s?.data?.session?.access_token;const h={{'Content-Type':'application/json'}};if(tok)h['Authorization']='Bearer '+tok;
 const r=await fetch('/api/chat',{{method:'POST',headers:h,body:JSON.stringify({{trip_id:tripId,text:t}})}});
 const rd=r.body.getReader(),dc=new TextDecoder();let buf='';
 while(1){{const{{done,value}}=await rd.read();if(done)break;buf+=dc.decode(value,{{stream:true}});
 for(const l of buf.split('\\n')){{if(!l.startsWith('data:'))continue;const d=l.slice(5).trim();if(d==='[DONE]')continue;try{{const j=JSON.parse(d);if(j.token)f+=j.token;b.innerHTML=M(f)}}catch(_){{}}}}
-buf=buf.includes('\\n')?buf.split('\\n').pop():buf;Q('#thread').scrollTop=Q('#thread').scrollHeight;}};
+buf=buf.includes('\\n')?buf.split('\\n').pop():buf;smartScroll();}};
 const sm=f.split('---SUGGESTIONS---');if(sm[1]){{const sgs=sm[1].split('\\n').filter(l=>l.trim().startsWith('-')).map(l=>l.replace(/^-\\s*/,''));const qr=Q('#quickReplies');qr.innerHTML=sgs.map(s=>'<span class=chip onclick="document.getElementById(\\'msgInput\\').value=\\''+s.replace(/'/g,'\\\\x27')+'\\';document.getElementById(\\'msgForm\\').dispatchEvent(new Event(\\'submit\\'))">'+s+'</span>').join('')}};
 }}catch(e){{b.innerHTML='<span style=color:#fca5a5>Error: '+H(e.message)+'</span>'}};sbb.disabled=false;sbb.textContent='Send';
-Q('#thread').scrollTop=Q('#thread').scrollHeight;}}
-i();const p=new URL(W.location);tripId=p.searchParams.get('trip');if(tripId)loadHistory();const q=p.searchParams.get('q');
+smartScroll();}}
+function smartScroll(){{const t=Q('#thread');if(t.scrollHeight-t.scrollTop-t.clientHeight<200)t.scrollTop=t.scrollHeight}}
+function clearChat(){{Q('#thread').innerHTML='';localStorage.removeItem('vp_trip')}}
+i();const p=new URL(W.location);tripId=p.searchParams.get('trip')||localStorage.getItem('vp_trip');if(tripId)loadHistory();const q=p.searchParams.get('q');
 Q('#msgForm').onsubmit=e=>{{e.preventDefault();const v=Q('#msgInput').value.trim();if(!v)return;Q('#msgInput').value='';Q('#quickReplies').innerHTML='';send(v)}};
 if(q){{p.searchParams.delete('q');history.replaceState(null,'',p.toString());send(q)}}
 </script></body></html>"""

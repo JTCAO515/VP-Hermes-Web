@@ -56,3 +56,20 @@ cards=4 | goChat=1 | skeleton=2 | trip=3 | btnDisable=2 | mobile=1
 - [x] 本地测试通过
 - [ ] 待部署
 
+
+---
+
+## Iteration 4 — 聊天体验打磨
+
+**日期**: 2026-05-24
+**状态**: ✅ 完成
+
+| # | 改动 | 效果 |
+|---|------|------|
+| 1 | 消息时间戳 | 每条消息右下角显示 HH:MM |
+| 2 | `smartScroll()` | 用户在看历史时不强制滚动，靠近底部才自动滚 |
+| 3 | `clearChat()` 按钮 | Header 新增 Clear 按钮，清空聊天 + localStorage |
+| 4 | 游客 ID 持久化 | `vp_trip` 存 localStorage，刷新不丢 trip |
+
+**测试**: 6/6 PASS
+
