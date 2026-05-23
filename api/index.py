@@ -138,11 +138,26 @@ def get_db():
 # LLM
 # ══════════════════════════════════════════════════════════
 
-SYSTEM_PROMPT = """You are VisePanda 🐼, a friendly China travel assistant.
-Be concise, helpful, and conversational. Recommend specific places, foods, and practical tips.
-When giving itineraries, format them nicely with clear day-by-day structure.
-Suggest quick follow-up questions at the end of long responses, prefixed with '---SUGGESTIONS---'.
-Always respond in the same language as the user's message."""
+SYSTEM_PROMPT = """You are VisePanda 🐼, a premium AI travel planner for China.
+
+Your personality: warm, knowledgeable, efficient. Like a local friend who happens to be a professional travel agent.
+
+RULES:
+- Recommend specific places, restaurants, hotels — never vague "there are many options"
+- Structure itineraries with clear day-by-day breakdown, times, and transport tips
+- Adapt to user's style: budget (青年旅社/当地小吃), mid-range (精品酒店/网红餐厅), luxury (五星酒店/米其林)
+- Mention practical details: best time to visit spots, ticket booking tips, subway routes
+- End long responses with ---SUGGESTIONS--- followed by 2-3 follow-up questions on separate lines starting with -
+- Always respond in the same language as the user
+
+FORMAT for itineraries:
+**Day N — [Theme]**
+- Morning (8:00-12:00): ...
+- Afternoon (12:00-18:00): ...
+- Evening (18:00+): ...
+- 🍜 Eat: ...
+- 🏨 Stay near: ...
+- 🚇 Transport: ..."""
 
 async def stream_llm(messages: list[dict]) -> AsyncGenerator[str, None]:
     if not LLM_ENABLED or not LLM_API_KEY:
@@ -209,6 +224,7 @@ header{height:56px;display:flex;align-items:center;justify-content:space-between
 footer{position:fixed;left:0;right:0;bottom:0;padding:10px 16px;border-top:1px solid var(--line);background:rgba(8,10,14,.55);backdrop-filter:blur(10px);font-size:12px;color:var(--muted);z-index:1}
 input[type=text]{border-radius:999px;border:1px solid var(--line);background:rgba(255,255,255,.03);color:var(--text);padding:12px 16px;outline:none;font-size:14px}
 input[type=text]:focus{border-color:rgba(125,211,252,.35);box-shadow:0 0 0 4px rgba(125,211,252,.12)}
+@media(max-width:640px){h1{font-size:24px!important}header{padding:0 12px}.btn{padding:6px 12px;font-size:11px}footer{font-size:11px;padding:8px 12px}.bubble{max-width:95%!important;font-size:15px}#msgForm{gap:6px}#msgInput{height:40px;font-size:16px}#sendBtn{height:40px;padding:0 14px;font-size:13px}.chat-footer{padding:10px 12px}#thread{padding:12px 12px 140px}input[type=text]{font-size:16px}}
 """
 
 def _inject_config() -> str:
@@ -277,6 +293,7 @@ let sb=null,tripId=null;
 async function i(){{sb=supabase.createClient(W.__SUPABASE_CONFIG__.supabase_url,W.__SUPABASE_CONFIG__.supabase_anon_key)}}
 const W=window,Q=s=>document.querySelector(s),H=s=>s.replace(/[&<>"']/g,c=>({{'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}}[c])),M=t=>t.replace(/\\*\\*(.+?)\\*\\*/g,'<b>$1</b>').replace(/\\*(.+?)\\*/g,'<i>$1</i>').replace(/\\n\\n/g,'</p><p>').replace(/\\n/g,'<br>');
 function msg(r,c){{const d=document.createElement('div');d.className='msg '+r;d.innerHTML='<div class=bubble>'+M(c)+'</div>';Q('#thread').appendChild(d);Q('#thread').scrollTop=Q('#thread').scrollHeight;return d}}
+async function loadHistory(){{if(!tripId)return;try{{const r=await fetch('/api/trips/'+tripId+'/messages');if(!r.ok)return;const msgs=await r.json();for(const m of msgs){{msg(m.role==='user'?'user':'bot',m.content)}}}}catch(e){{}}}}
 async function send(t){{msg('user',t);tripId=tripId||'t_'+crypto.randomUUID();const b=msg('bot','<span class=cursor>▊</span>');let f='';try{{
 const s=await sb?.auth.getSession();const tok=s?.data?.session?.access_token;const h={{'Content-Type':'application/json'}};if(tok)h['Authorization']='Bearer '+tok;
 const r=await fetch('/api/chat',{{method:'POST',headers:h,body:JSON.stringify({{trip_id:tripId,text:t}})}});
@@ -287,7 +304,7 @@ buf=buf.includes('\\n')?buf.split('\\n').pop():buf;Q('#thread').scrollTop=Q('#th
 const sm=f.split('---SUGGESTIONS---');if(sm[1]){{const sgs=sm[1].split('\\n').filter(l=>l.trim().startsWith('-')).map(l=>l.replace(/^-\\s*/,''));const qr=Q('#quickReplies');qr.innerHTML=sgs.map(s=>'<span class=chip onclick="document.getElementById(\\'msgInput\\').value=\\''+s.replace(/'/g,'\\\\x27')+'\\';document.getElementById(\\'msgForm\\').dispatchEvent(new Event(\\'submit\\'))">'+s+'</span>').join('')}};
 }}catch(e){{b.innerHTML='<span style=color:#fca5a5>Error: '+H(e.message)+'</span>'}};
 Q('#thread').scrollTop=Q('#thread').scrollHeight;}}
-i();const p=new URL(W.location);tripId=p.searchParams.get('trip');const q=p.searchParams.get('q');
+i();const p=new URL(W.location);tripId=p.searchParams.get('trip');if(tripId)loadHistory();const q=p.searchParams.get('q');
 Q('#msgForm').onsubmit=e=>{{e.preventDefault();const v=Q('#msgInput').value.trim();if(!v)return;Q('#msgInput').value='';Q('#quickReplies').innerHTML='';send(v)}};
 if(q){{p.searchParams.delete('q');history.replaceState(null,'',p.toString());send(q)}}
 </script></body></html>"""
@@ -371,9 +388,19 @@ async def chat_endpoint(payload: ChatIn, request: Request):
     finally:
         db.close()
 
+    # Load conversation history for context
+    db_ctx = SessionLocal()
+    try:
+        recent = db_ctx.query(ChatMessage).filter(
+            ChatMessage.trip_id == payload.trip_id
+        ).order_by(ChatMessage.created_at.desc()).limit(20).all()[::-1]
+        context_msgs = [{"role": m.role, "content": m.content} for m in recent]
+    finally:
+        db_ctx.close()
+
     messages = [
         {"role": "system", "content": SYSTEM_PROMPT},
-        {"role": "user", "content": payload.text},
+        *context_msgs,
     ]
 
     async def generate():
@@ -396,3 +423,16 @@ async def chat_endpoint(payload: ChatIn, request: Request):
                 db2.close()
 
     return StreamingResponse(generate(), media_type="text/event-stream")
+
+
+@app.get("/api/trips/{trip_id}/messages")
+def get_messages(trip_id: str):
+    """Return chat history for a trip."""
+    db = SessionLocal()
+    try:
+        msgs = db.query(ChatMessage).filter(
+            ChatMessage.trip_id == trip_id
+        ).order_by(ChatMessage.created_at.asc()).limit(50).all()
+        return [{"role": m.role, "content": m.content, "created_at": m.created_at.isoformat()} for m in msgs]
+    finally:
+        db.close()
