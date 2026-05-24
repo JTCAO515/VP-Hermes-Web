@@ -5,3 +5,4 @@ data.sqlite3
 /tmp/
 .env
 .vercel
+.env*
