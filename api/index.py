@@ -1359,6 +1359,14 @@ async def chat_endpoint(payload: ChatIn, request: Request):
             ChatMessage.trip_id == payload.trip_id
         ).order_by(ChatMessage.created_at.desc()).limit(20).all()[::-1]
         context_msgs = [{"role": m.role, "content": m.content} for m in recent]
+        # Context compression: if more than 8 messages, summarize older ones
+        if len(context_msgs) > 8:
+            keep = context_msgs[-6:]  # Keep last 6 messages verbatim
+            older = context_msgs[:-6]
+            summary_text = " | ".join(m["content"][:80] for m in older if m["role"] == "user")
+            if summary_text:
+                summary_msg = {"role": "system", "content": f"[历史摘要] 用户之前提到: {summary_text}..."}
+                context_msgs = [summary_msg] + keep
     finally:
         db_ctx.close()
 
