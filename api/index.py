@@ -607,7 +607,7 @@ def page_share(share_id: str) -> str:
     try:
         trip = db.query(Trip).filter(Trip.share_id == share_id).one_or_none()
         if not trip:
-            return '<html lang=en><head><meta charset=utf-8><title>Not Found</title><style>body{{display:flex;align-items:center;justify-content:center;min-height:100vh;background:#0a0f17;color:#fff;font-family:sans-serif;text-align:center;margin:0}}h1{{font-size:48px}}a{{color:#7dd3fc}}</style><h1>🐼</h1><p>Trip not found</p><a href=/>Back home</a><script src="/static/i18n.js"></script>'
+            return '<html lang=en><head><meta charset=utf-8><title>Not Found</title><style>body{display:flex;align-items:center;justify-content:center;min-height:100vh;background:#0a0f17;color:#fff;font-family:sans-serif;text-align:center;margin:0}h1{font-size:48px}a{color:#7dd3fc}</style><h1>🐼</h1><p>Trip not found</p><a href=/>Back home</a><script src="/static/i18n.js"></script>'
         msgs = db.query(ChatMessage).filter(ChatMessage.trip_id == trip.id).order_by(ChatMessage.created_at.asc()).all()
     finally:
         db.close()
@@ -622,7 +622,8 @@ def page_share(share_id: str) -> str:
     summary_parts = [s for s in [cities_str, days_str, budget_str] if s]
     summary = ' · '.join(summary_parts) if summary_parts else 'AI-planned trip'
     
-    return f'''<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><link rel="manifest" href="/static/manifest.json">
+    tid = trip.id
+    html = f'''<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><link rel="manifest" href="/static/manifest.json">
 <meta name="theme-color" content="#7dd3fc">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
@@ -631,17 +632,32 @@ def page_share(share_id: str) -> str:
 <meta name="description" content="{summary}">
 <meta property="og:title" content="{title}">
 <meta property="og:description" content="{summary}">
-<meta property="og:image" content="/api/trips/{trip.id}/card">
+<meta property="og:image" content="/api/trips/{tid}/card">
 <meta property="og:image:width" content="1200">
 <meta property="og:image:height" content="630">
 <meta name="twitter:card" content="summary_large_image">
 </style><script defer src='/_vercel/insights/script.js'></script><script defer src='/_vercel/speed-insights/script.js'></script></head><body><div class="bg-shanshui"></div>
-|<div class="share-header"><h2>🐼 {title}</h2><p data-i18n="shareAI">AI-planned trip · {len(msgs)} messages</p><a href="/" class="btn btn-accent" style="margin-top:16px;display:inline-block" data-i18n="planYourOwn">🚀 Create your own trip</a></div>
-|<div class="share-thread">{msgs_html}</div>
-|<div id="tripMap" class="vp-map-container" style="display:block;height:400px;margin:16px"></div>
-|<div class="share-footer"><a href="/" class="btn btn-accent" data-i18n="planYourOwn">Plan your own trip</a><script src="/static/i18n.js"></script></div>
-|<script src="/static/pwa.js"></script><script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script><script src="/static/map.js"></script>
-<script>var _tid="{trip.id}";if(typeof VP_MAP!=='undefined'&&VP_MAP.loadItinerary){(async function(){{try{{var r=await fetch('/api/trips/'+_tid);var d=await r.json();if(d.current_itinerary&&d.current_itinerary.cities&&d.current_itinerary.cities.length>0){{VP_MAP.loadItinerary('tripMap',d);}}}}catch(e){{}}}})();}</script></body></html>'''
+<div class="share-header"><h2>🐼 {title}</h2><p data-i18n="shareAI">AI-planned trip · ''' + str(len(msgs)) + ''' messages</p><a href="/" class="btn btn-accent" style="margin-top:16px;display:inline-block" data-i18n="planYourOwn">🚀 Create your own trip</a></div>
+<div class="share-thread">''' + msgs_html + '''</div>
+<div id="tripMap" class="vp-map-container" style="display:block;height:400px;margin:16px"></div>
+<div class="share-footer"><a href="/" class="btn btn-accent" data-i18n="planYourOwn">Plan your own trip</a><script src="/static/i18n.js"></script></div>
+<script src="/static/pwa.js"></script><script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script><script src="/static/map.js"></script>
+<script>
+var _tid="''' + tid + '''";
+(function(){
+try{
+var r=new XMLHttpRequest();
+r.open('GET','/api/trips/'+_tid,false);
+r.send();
+var d=JSON.parse(r.responseText);
+if(d.current_itinerary&&d.current_itinerary.cities&&d.current_itinerary.cities.length>0){
+VP_MAP.loadItinerary('tripMap',d);
+}
+}catch(e){}
+})();
+</script>
+</body></html>'''
+    return html
 
 
 def page_trips() -> str:
