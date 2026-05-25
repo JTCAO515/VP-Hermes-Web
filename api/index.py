@@ -1644,16 +1644,25 @@ def get_messages(trip_id: str):
 # ── Weather API (wttr.in) ──
 @app.get("/api/weather/{city}")
 def weather_route(city: str):
-    """GET /api/weather/Beijing → 3-day forecast JSON"""
+    """GET /api/weather/Beijing → 3-day forecast via wttr.in"""
     try:
-        from weather import get_weather_sync
-        data = get_weather_sync(city)
-        if data is None:
-            return JSONResponse({"error": "Weather unavailable"}, status_code=503)
-        return JSONResponse(data)
+        import httpx, time
+        _cache = {}
+        key = city.lower().strip()
+        with httpx.Client(timeout=8) as c:
+            r = c.get(f"https://wttr.in/{key}?format=j1")
+            if r.status_code != 200:
+                return JSONResponse({"error": "Weather unavailable"}, status_code=503)
+            d = r.json()
+            cur = d.get("current_condition", [{}])[0]
+            fc = d.get("weather", [])[:3]
+            return JSONResponse({
+                "city": city, "temp_c": cur.get("temp_C","?"),
+                "description": cur.get("weatherDesc",[{}])[0].get("value",""),
+                "forecast": [{"date":day.get("date",""),"max":day.get("maxtempC","?"),"min":day.get("mintempC","?")} for day in fc]
+            })
     except Exception as e:
-        print(f"Weather error: {e}")
-        return JSONResponse({"error": "Weather service error"}, status_code=500)
+        return JSONResponse({"error": f"Weather failed: {repr(e)}"}, status_code=500)
 
 
 # ── Calendar export (.ics) ──
@@ -1694,14 +1703,31 @@ def fx_route(amount: float, from_curr: str, to_curr: str = "CNY"):
 # ── Itinerary validation ──
 @app.post("/api/itinerary/validate")
 async def validate_route(request: Request):
-    """POST itinerary JSON → list of warnings"""
+    """POST itinerary JSON → list of warnings (inline validation)"""
     try:
-        from prompt import validate_itinerary
         body = await request.json()
-        warnings = validate_itinerary(body)
+        warnings = []
+        days = body.get("itinerary", body.get("days", []))
+        for day in days:
+            dn = day.get("day", 0)
+            acts = day.get("activities", day.get("items", []))
+            if len(acts) > 8:
+                warnings.append(f"Day {dn}: 安排了 {len(acts)} 项活动，可能太紧凑")
+            elif len(acts) == 0:
+                warnings.append(f"Day {dn}: 没有安排任何活动")
+            for a in acts:
+                t, n = a.get("time", ""), a.get("name", "")
+                if "餐" in t or "饭" in t:
+                    if any(h in t for h in ["22:", "23:", "00:", "01:", "02:"]):
+                        warnings.append(f"Day {dn}: '{n}' 安排在深夜 {t}")
+                if "出发" in t or "起" in t:
+                    try:
+                        if int(t.split(":")[0]) < 5:
+                            warnings.append(f"Day {dn}: '{n}' 出发时间 {t} 过早")
+                    except: pass
         return JSONResponse({"warnings": warnings, "safe": len(warnings) == 0})
-    except Exception:
-        return JSONResponse({"warnings": ["Validation failed"], "safe": False}, status_code=500)
+    except Exception as e:
+        return JSONResponse({"warnings": [f"Failed: {repr(e)}"], "safe": False}, status_code=500)
 
 
 # ── Geocode API (Nominatim proxy with cache) ──
