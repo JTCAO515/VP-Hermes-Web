@@ -65,6 +65,8 @@ FOOD = {
         {"name_zh": "汽锅鸡", "name_en": "Steam Pot Chicken", "type": "famous", "price_range": "¥50-90", "description": "不加一滴水，蒸汽凝结为汤", "must_try": True},
         {"name_zh": "烤乳扇", "name_en": "Roasted Milk Fan", "type": "street", "price_range": "¥5-10", "description": "大理街头小吃，奶香酥脆", "must_try": False},
         {"name_zh": "水性杨花", "name_en": "Water Lily Stem", "type": "famous", "price_range": "¥20-35", "description": "泸沽湖水草，口感滑嫩", "must_try": False},
+        {"name_zh": "鲜花饼", "name_en": "Flower Cake", "type": "snack", "price_range": "¥3-8/个", "description": "玫瑰花瓣馅，嘉华/潘祥记", "must_try": True},
+        {"name_zh": "凉鸡米线", "name_en": "Cold Chicken Rice Noodles", "type": "street", "price_range": "¥10-15", "description": "大理特色，酸甜口感", "must_try": False},
     ],
     "changsha": [
         {"name_zh": "臭豆腐", "name_en": "Stinky Tofu", "type": "street", "price_range": "¥5-10", "description": "黑色经典，外脆里嫩", "must_try": True},
@@ -104,13 +106,6 @@ FOOD = {
         {"name_zh": "烧鹅", "name_en": "Roasted Goose", "type": "famous", "price_range": "¥50-80", "description": "光明乳鸽是深圳特色", "must_try": False},
         {"name_zh": "肠粉", "name_en": "Rice Noodle Roll", "type": "street", "price_range": "¥6-15", "description": "广式肠粉当早餐，红荔村", "must_try": True},
         {"name_zh": "早茶", "name_en": "Dim Sum (Yum Cha)", "type": "restaurant", "price_range": "¥40-100/人", "description": "点都德/广州酒家/凤凰楼", "must_try": True},
-    ],
-    "kunming": [
-        {"name_zh": "过桥米线", "name_en": "Crossing-the-Bridge Noodles", "type": "famous", "price_range": "¥20-60", "description": "正宗发源地，建新园/桥香园", "must_try": True},
-        {"name_zh": "汽锅鸡", "name_en": "Steam Pot Chicken", "type": "famous", "price_range": "¥50-100", "description": "福照楼是最老牌汽锅鸡", "must_try": True},
-        {"name_zh": "野生菌火锅", "name_en": "Wild Mushroom Hot Pot", "type": "famous", "price_range": "¥100-200/人", "description": "雨季去昆明必须吃菌子", "must_try": True},
-        {"name_zh": "烧饵块", "name_en": "Roasted Rice Cake", "type": "street", "price_range": "¥5-8", "description": "昆明街边早餐，夹酱/烤肠", "must_try": False},
-        {"name_zh": "官渡粑粑", "name_en": "Guandu Flatbread", "type": "snack", "price_range": "¥3-5", "description": "官渡古镇特色，红糖/豆沙馅", "must_try": False},
     ],
     "lijiang": [
         {"name_zh": "腊排骨火锅", "name_en": "Smoked Pork Rib Hot Pot", "type": "famous", "price_range": "¥60-100/人", "description": "丽江必吃，象山市场腊排骨", "must_try": True},
@@ -162,13 +157,6 @@ FOOD = {
         {"name_zh": "海鲜大餐", "name_en": "Seafood Feast", "type": "restaurant", "price_range": "¥80-200/人", "description": "第一市场/春园海鲜广场自选加工", "must_try": True},
         {"name_zh": "清补凉", "name_en": "Qingbuliang (Coconut Dessert)", "type": "snack", "price_range": "¥10-20", "description": "椰奶+红豆+芋头+西瓜，解暑神器", "must_try": True},
         {"name_zh": "抱罗粉", "name_en": "Baoluo Rice Noodles", "type": "street", "price_range": "¥10-20", "description": "海南特色汤粉", "must_try": False},
-    ],
-    "guizhou": [
-        {"name_zh": "酸汤鱼", "name_en": "Sour Soup Fish", "type": "famous", "price_range": "¥50-100", "description": "贵州招牌，红酸汤/白酸汤两种", "must_try": True},
-        {"name_zh": "花溪牛肉粉", "name_en": "Huaxi Beef Noodles", "type": "street", "price_range": "¥10-20", "description": "贵阳人最爱早餐", "must_try": True},
-        {"name_zh": "丝娃娃", "name_en": "Siwawa (Spring Roll Wraps)", "type": "street", "price_range": "¥15-30", "description": "自己包的各种蔬菜丝，贵阳特色", "must_try": False},
-        {"name_zh": "肠旺面", "name_en": "Changwang Noodles", "type": "street", "price_range": "¥12-20", "description": "猪肠+猪血+红油面", "must_try": False},
-        {"name_zh": "糯米饭", "name_en": "Glutinous Rice", "type": "street", "price_range": "¥5-10", "description": "贵阳街边早餐，加辣椒折耳根", "must_try": False},
     ],
     "fuzhou": [
         {"name_zh": "佛跳墙", "name_en": "Buddha Jumps Over the Wall", "type": "famous", "price_range": "¥200-500", "description": "闽菜至尊，鲍鱼海参花胶炖盅", "must_try": True},
