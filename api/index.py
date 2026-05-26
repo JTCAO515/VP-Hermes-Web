@@ -1317,6 +1317,122 @@ if(!pc.children.length){pc.innerHTML='<div style=color:#6b7280;font-size:14px>Ti
 p.style.display='block';setTimeout(()=>p.scrollIntoView({behavior:'smooth'}),100)}</script></body></html>"""
 
 
+# ── Travel Journal ──
+@app.get("/journal", response_class=HTMLResponse)
+def journal_page():
+    return """<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Travel Journal — VisePanda</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:'Inter',sans-serif;background:#0d1117;color:#e6edf3;min-height:100vh}
+.header{background:linear-gradient(135deg,#1a1f2e,#0d1117);padding:32px 20px 24px;text-align:center;border-bottom:1px solid #30363d}
+.header h1{font-size:28px;font-weight:800;background:linear-gradient(135deg,#f0883e,#e05a2a);-webkit-background-clip:text;-webkit-text-fill-color:transparent}
+.header p{color:#8b949e;font-size:14px;margin-top:4px}
+.container{max-width:720px;margin:0 auto;padding:20px 16px}
+.add-btn{display:flex;align-items:center;justify-content:center;gap:8px;width:100%;padding:14px;border:2px dashed #30363d;border-radius:12px;background:transparent;color:#8b949e;font-size:15px;font-family:inherit;cursor:pointer;transition:all .2s;margin-bottom:20px}
+.add-btn:hover{border-color:#f0883e;color:#f0883e;background:#1c2128}
+.entry{background:#161b22;border-radius:12px;border:1px solid #30363d;padding:16px;margin-bottom:12px;position:relative}
+.entry .date{font-size:12px;color:#8b949e;margin-bottom:6px}
+.entry .title{font-size:16px;font-weight:600;margin-bottom:6px}
+.entry .text{font-size:14px;color:#c9d1d9;line-height:1.6;white-space:pre-wrap}
+.entry .photos{display:flex;gap:8px;margin-top:10px;flex-wrap:wrap}
+.entry .photos img{width:90px;height:90px;object-fit:cover;border-radius:8px;border:1px solid #30363d}
+.entry .del{position:absolute;top:12px;right:12px;background:none;border:none;color:#8b949e;font-size:18px;cursor:pointer;padding:4px}
+.entry .del:hover{color:#f85149}
+.modal{display:none;position:fixed;inset:0;background:rgba(0,0,0,.7);z-index:100;align-items:center;justify-content:center}
+.modal.active{display:flex}
+.modal-content{background:#161b22;border-radius:16px;padding:24px;width:90%;max-width:480px;border:1px solid #30363d}
+.modal-content h2{font-size:20px;margin-bottom:16px}
+.modal-content label{display:block;font-size:13px;color:#8b949e;margin-bottom:4px;margin-top:12px}
+.modal-content input,.modal-content textarea{width:100%;padding:10px 14px;border:1px solid #30363d;border-radius:8px;background:#0d1117;color:#e6edf3;font-size:14px;font-family:inherit}
+.modal-content textarea{min-height:100px;resize:vertical}
+.modal-content .btn{padding:10px 20px;border-radius:8px;border:none;font-size:14px;font-weight:600;cursor:pointer;margin-top:16px}
+.modal-content .btn-primary{background:#f0883e;color:#fff}
+.modal-content .btn-secondary{background:#21262d;color:#c9d1d9;margin-left:8px}
+.empty{text-align:center;padding:60px 20px;color:#8b949e}
+.empty .big{font-size:48px;margin-bottom:12px}
+.empty p{font-size:14px;line-height:1.6}
+.footer{text-align:center;padding:24px;color:#8b949e;font-size:13px}
+.footer a{color:#58a6ff;text-decoration:none}
+#photoInput{display:none}
+</style></head><body>
+<div class=header><h1>📖 Travel Journal</h1><p>Capture your China travel memories — photos and notes</p></div>
+<div class=container>
+<button class=add-btn onclick="openModal()">+ New Entry</button>
+<div id=entries></div>
+<div class=empty id=empty><div class=big>✈️</div><p>No entries yet.<br>Start your travel journal!</p></div>
+</div>
+<div class=footer><a href=/>← Back to VisePanda</a> · All data saved privately in your browser</div>
+<div class=modal id=modal>
+<div class=modal-content>
+<h2>✏️ New Journal Entry</h2>
+<label>Title</label><input id=entryTitle placeholder="e.g. Day 1 in Beijing">
+<label>Notes</label><textarea id=entryText placeholder="Write about your day..."></textarea>
+<label>Photos</label>
+<button class="btn btn-secondary" onclick="document.getElementById('photoInput').click()">📷 Add Photos</button>
+<input type=file id=photoInput multiple accept="image/*">
+<div id=photoPreviews style="display:flex;gap:8px;margin-top:8px;flex-wrap:wrap"></div>
+<button class="btn btn-primary" onclick="saveEntry()">Save Entry</button>
+<button class="btn btn-secondary" onclick="closeModal()">Cancel</button>
+</div></div>
+<script>
+let ENTRIES=[];let PHOTOS=[];
+function load(){try{const d=JSON.parse(localStorage.getItem('vp_journal')||'[]');ENTRIES=d;render()}catch(e){ENTRIES=[];render()}}
+function render(){const c=document.getElementById('entries');const e=document.getElementById('empty');
+if(!ENTRIES.length){c.innerHTML='';e.style.display='block';return}
+e.style.display='none';c.innerHTML=ENTRIES.map((e,i)=>'<div class=entry><button class=del onclick=delEntry('+i+')>✕</button>'+
+'<div class=date>'+e.date+'</div><div class=title>'+e.title+'</div><div class=text>'+e.text+'</div>'+
+(e.photos&&e.photos.length?'<div class=photos>'+e.photos.map(p=>'<img src="'+p+'">').join('')+'</div>':'')+'</div>').join('')}
+function openModal(){document.getElementById('modal').classList.add('active');PHOTOS=[];document.getElementById('photoPreviews').innerHTML=''}
+function closeModal(){document.getElementById('modal').classList.remove('active')}
+document.getElementById('photoInput').onchange=function(e){PHOTOS=[];const p=document.getElementById('photoPreviews');p.innerHTML='';
+for(const f of e.target.files){const r=new FileReader();r.onload=function(ev){PHOTOS.push(ev.target.result);p.innerHTML+='<img src="'+ev.target.result+'" style="width:80px;height:80px;object-fit:cover;border-radius:8px;border:1px solid #30363d">'};r.readAsDataURL(f)}}
+function saveEntry(){const t=document.getElementById('entryTitle').value.trim()||'Untitled Entry';const x=document.getElementById('entryText').value.trim();
+if(!x&&!PHOTOS.length){alert('Add some notes or photos!');return}
+ENTRIES.unshift({title:t,text:x||'(photos only)',date:new Date().toLocaleDateString('en-US',{weekday:'short',year:'numeric',month:'short',day:'numeric'}),photos:[...PHOTOS]});
+localStorage.setItem('vp_journal',JSON.stringify(ENTRIES));render();closeModal();
+document.getElementById('entryTitle').value='';document.getElementById('entryText').value='';document.getElementById('photoPreviews').innerHTML=''}
+function delEntry(i){if(confirm('Delete this entry?')){ENTRIES.splice(i,1);localStorage.setItem('vp_journal',JSON.stringify(ENTRIES));render()}}
+load();
+</script></body></html>"""
+
+
+# ── Sitemap & Links ──
+@app.get("/sitemap.xml", response_class=Response)
+def sitemap():
+    return Response(
+        content='<?xml version="1.0" encoding="UTF-8"?><urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">'
+        '<url><loc>https://go2china.space/</loc><priority>1.0</priority></url>'
+        '<url><loc>https://go2china.space/chat</loc><priority>0.9</priority></url>'
+        '<url><loc>https://go2china.space/phrases</loc><priority>0.7</priority></url>'
+        '<url><loc>https://go2china.space/fx</loc><priority>0.7</priority></url>'
+        '<url><loc>https://go2china.space/export</loc><priority>0.6</priority></url>'
+        '<url><loc>https://go2china.space/journal</loc><priority>0.6</priority></url>'
+        '</urlset>',
+        media_type="application/xml"
+    )
+
+
+@app.get("/links", response_class=HTMLResponse)
+def links_page():
+    return """<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>All Tools — VisePanda</title>
+<style>*{margin:0;padding:0;box-sizing:border-box}body{font-family:system-ui,-apple-system,sans-serif;background:#f9fafb;color:#1f2937;padding:40px 20px;max-width:600px;margin:0 auto}
+h1{font-size:28px;margin-bottom:24px;text-align:center}.links{display:flex;flex-direction:column;gap:12px}.card{display:flex;align-items:center;gap:16px;padding:16px 20px;background:#fff;border-radius:12px;border:1px solid #e5e7eb;text-decoration:none;color:#1f2937;transition:all .2s}
+.card:hover{border-color:#bc3a2c;box-shadow:0 2px 8px rgba(0,0,0,.08)}.card .icon{font-size:28px}.card .info h3{font-size:16px;font-weight:600}.card .info p{font-size:13px;color:#6b7280;margin-top:2px}
+</style></head><body><h1>🧰 VisePanda Tools</h1><div class=links>
+<a class=card href=/><div class=icon>🏠</div><div class=info><h3>Home</h3><p>AI trip planner landing page</p></div></a>
+<a class=card href=/chat><div class=icon>💬</div><div class=info><h3>Chat</h3><p>Plan your trip with AI</p></div></a>
+<a class=card href=/trips><div class=icon>🗺️</div><div class=info><h3>My Trips</h3><p>Saved trip itineraries</p></div></a>
+<a class=card href=/phrases><div class=icon>🇨🇳</div><div class=info><h3>Language Cards</h3><p>64 essential Chinese phrases</p></div></a>
+<a class=card href=/fx><div class=icon>💰</div><div class=info><h3>Exchange Rates</h3><p>Currency converter + 30-day chart</p></div></a>
+<a class=card href=/export><div class=icon>📄</div><div class=info><h3>Export Trip</h3><p>Print or save itinerary as PDF</p></div></a>
+<a class=card href=/journal><div class=icon>📖</div><div class=info><h3>Travel Journal</h3><p>Photos + notes for your trip</p></div></a>
+<a class=card href=/profile><div class=icon>👤</div><div class=info><h3>Profile</h3><p>Account settings</p></div></a>
+</div></body></html>"""
+
+
 @app.get("/auth/callback", response_class=HTMLResponse)
 def auth_callback():
     return page_auth_callback()
