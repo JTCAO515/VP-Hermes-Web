@@ -933,7 +933,8 @@ def page_phrases() -> str:
         f'{c["icon"]} {c["title_en"]}</button>'
         for c in cats
     )
-    return f"""<!doctype html><html lang="en"><head><meta charset="utf-8">
+    nav = _nav("/phrases")
+    return nav + f"""<!doctype html><html lang="en"><head><meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <title>Language Emergency Cards 🇨🇳 — VisePanda</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -995,7 +996,7 @@ showCat('taxi')
 
 def page_fx() -> str:
     """Exchange rate dashboard with 30-day chart"""
-    return """<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+    return _nav("/fx") + """<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
 <title>Exchange Rates Chart 🇨🇳 — VisePanda</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
@@ -1128,6 +1129,46 @@ async def lifespan(app: FastAPI):
 
 app = FastAPI(title="VisePanda", version="0.1.0", lifespan=lifespan)
 app.mount("/static", StaticFiles(directory="static"), name="static")
+
+
+@app.exception_handler(404)
+async def not_found(request, exc):
+    return HTMLResponse(f"""<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>404 — Page Not Found</title>
+<style>body{{font-family:system-ui,sans-serif;background:#0d1117;color:#e6edf3;display:flex;align-items:center;justify-content:center;min-height:100vh;margin:0;padding:20px;text-align:center}}
+h1{{font-size:72px;font-weight:800;background:linear-gradient(135deg,#f0883e,#e05a2a);-webkit-background-clip:text;-webkit-text-fill-color:transparent;margin-bottom:4px}}
+p{{color:#8b949e;font-size:16px;margin-bottom:24px}}
+.btn{{display:inline-block;padding:12px 24px;border-radius:10px;background:#f0883e;color:#fff;text-decoration:none;font-weight:600;font-size:14px}}
+.btn:hover{{background:#e05a2a}}</style></head><body><div>
+<h1>404</h1><p>This page doesn't exist yet.<br>Maybe we haven't planned this trip?</p>
+<a class=btn href=/>← Go Home</a>
+</div></body></html>""",
+        status_code=404
+    )
+
+@app.exception_handler(500)
+async def server_error(request, exc):
+    return HTMLResponse(f"""<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>500 — Oops!</title>
+<style>body{{font-family:system-ui,sans-serif;background:#0d1117;color:#e6edf3;display:flex;align-items:center;justify-content:center;min-height:100vh;margin:0;padding:20px;text-align:center}}
+h1{{font-size:48px;font-weight:800;color:#f85149;margin-bottom:4px}}
+p{{color:#8b949e;font-size:16px;margin-bottom:24px}}
+.btn{{display:inline-block;padding:12px 24px;border-radius:10px;background:#f0883e;color:#fff;text-decoration:none;font-weight:600;font-size:14px}}
+.btn:hover{{background:#e05a2a}}</style></head><body><div>
+<h1>⚠️ 500</h1><p>Something went wrong on our end.<br>The pandas are working on it.</p>
+<a class=btn href=/>← Go Home</a>
+</div></body></html>""",
+        status_code=500
+    )
+
+NAV_ITEMS = [
+    ("/phrases", chr(127481)+chr(127472)+" Phrases"), ("/fx", "💰 FX"), ("/packing", "🎒 Pack"),
+    ("/hotels", "🏨 Hotels"), ("/export", "📄 Export"), ("/journal", "📖 Journal"),
+]
+
+_NAV_STYLE = "<style>.tn{display:flex;gap:6px;padding:10px 16px;background:#161b22;border-bottom:1px solid #30363d;overflow-x:auto;flex-wrap:wrap;justify-content:center}.tn a{padding:6px 14px;border-radius:8px;font-size:13px;font-weight:500;color:#8b949e;text-decoration:none;white-space:nowrap;transition:all .2s}.tn a:hover{color:#f0883e;background:#1c2128}.tn a.act{color:#f0883e;background:#2d1f12;border:1px solid #f0883e33}</style>"
+
+def _nav(current=""):
+    items = "".join(f'<a href="{u}"{" class=act" if u==current else ""}>{n}</a>' for u,n in NAV_ITEMS)
+    return f'<nav class=tn>{items}</nav>{_NAV_STYLE}'
 
 
 @app.get("/api/health")
@@ -1353,7 +1394,7 @@ def packing_page():
         f'<div class=pi>{_item_html(v["items"])}</div></div>'
         for k, v in PACKING.items()
     )
-    return f"""<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Smart Packing List — VisePanda</title>
+    return _nav("/packing") + f"""<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Smart Packing List — VisePanda</title>
 <link rel="preconnect" href="https://fonts.googleapis.com"><link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 <style>
 *{{margin:0;padding:0;box-sizing:border-box}}body{{font-family:'Inter',sans-serif;background:#0d1117;color:#e6edf3;min-height:100vh}}
@@ -1404,7 +1445,7 @@ def hotels_page():
         f'<div class=tp>💡 {c["tip"]}</div></div>'
         for c in HOTELS.values()
     )
-    return f"""<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Hotel Guide — VisePanda</title>
+    return _nav("/hotels") + f"""<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Hotel Guide — VisePanda</title>
 <link rel="preconnect" href="https://fonts.googleapis.com"><link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 <style>
 *{{margin:0;padding:0;box-sizing:border-box}}body{{font-family:'Inter',sans-serif;background:#0d1117;color:#e6edf3;min-height:100vh}}
@@ -1441,7 +1482,7 @@ function f(){{const q=document.getElementById('s').value.toLowerCase();document.
 # ── Trip Export (PDF/HTML) ──
 @app.get("/export", response_class=HTMLResponse)
 def export_page():
-    return """<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+    return _nav("/export") + """<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
 <title>Trip Export — VisePanda</title>
 <style>
 *{margin:0;padding:0;box-sizing:border-box}
@@ -1489,7 +1530,7 @@ p.style.display='block';setTimeout(()=>p.scrollIntoView({behavior:'smooth'}),100
 # ── Travel Journal ──
 @app.get("/journal", response_class=HTMLResponse)
 def journal_page():
-    return """<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+    return _nav("/journal") + """<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
 <title>Travel Journal — VisePanda</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
