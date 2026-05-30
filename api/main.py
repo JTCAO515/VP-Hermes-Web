@@ -237,17 +237,18 @@ async def stream_llm(messages: list[dict]) -> AsyncGenerator[str, None]:
 # ══════════════════════════════════════════════════════════
 
 CSS = """
-@import url('https://fonts.cdnfonts.com/css/geist');
 :root{--bg0:#05070b;--bg1:#0a0f17;--bg2:#0e1520;--line:rgba(255,255,255,.06);--line-hover:rgba(125,211,252,.25);--muted:rgba(255,255,255,.5);--text:rgba(255,255,255,.92);--accent:#7dd3fc;--accent-dim:rgba(125,211,252,.12);--card-bg:rgba(255,255,255,.02);--card-hover:rgba(125,211,252,.04);--font-display:'Geist','Geist Fallback',system-ui,-apple-system,sans-serif;--font-mono:'Geist Mono','JetBrains Mono','Fira Code',monospace}
+/* font-display: swap is implicit — Geist loads async via <link preload>
+   until loaded, system-ui/sans-serif fallback renders immediately */
 *,*::before,*::after{box-sizing:border-box}
 body{margin:0;min-height:100dvh;background:radial-gradient(1400px 900px at 30% 10%,#121826 0%,var(--bg1) 45%,var(--bg0) 100%);color:var(--text);font-family:var(--font-display);-webkit-font-smoothing:antialiased;-moz-osx-font-smoothing:grayscale}
-.bg-shanshui{position:fixed;inset:0;background:url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 400"><path d="M0 350 Q200 200 400 280 Q600 360 800 250 L800 400 L0 400Z" fill="%23ffffff" opacity=".02"/></svg>') center/cover;opacity:.12;filter:blur(8px);pointer-events:none}
-.bg-glow{position:fixed;top:-30%;right:-20%;width:600px;height:600px;border-radius:50%;background:radial-gradient(circle,rgba(125,211,252,.06),transparent 70%);pointer-events:none;z-index:0}
+.bg-shanshui{position:fixed;inset:0;background:url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 400"><path d="M0 350 Q200 200 400 280 Q600 360 800 250 L800 400 L0 400Z" fill="%23ffffff" opacity=".06"/></svg>') center/cover;filter:blur(8px);pointer-events:none;will-change:transform}
+.bg-glow{position:fixed;top:-30%;right:-20%;width:600px;height:600px;border-radius:50%;background:radial-gradient(circle,rgba(125,211,252,.06),transparent 70%);pointer-events:none;z-index:0;will-change:transform}
 header{height:56px;display:flex;align-items:center;justify-content:space-between;padding:0 20px;border-bottom:1px solid var(--line);background:rgba(15,20,30,.45);backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);position:relative;z-index:10}
 .brand{display:flex;align-items:center;gap:10px;text-decoration:none;color:var(--text)}
 .brand-dot{width:8px;height:8px;border-radius:99px;background:var(--accent);box-shadow:0 0 14px rgba(125,211,252,.4);flex-shrink:0}
 .brand-name{font-weight:600;font-size:13px;letter-spacing:-.01em}
-.btn{font-size:12px;padding:8px 16px;border-radius:999px;border:1px solid var(--line);background:rgba(255,255,255,.03);color:var(--text);cursor:pointer;text-decoration:none;transition:all .2s;display:inline-flex;align-items:center;gap:6px}
+.btn{font-size:12px;padding:8px 16px;border-radius:999px;border:1px solid var(--line);background:rgba(255,255,255,.03);color:var(--text);cursor:pointer;text-decoration:none;transition:all .2s cubic-bezier(.16,1,.3,1);display:inline-flex;align-items:center;gap:6px;backface-visibility:hidden}
 .btn:hover{background:rgba(255,255,255,.07);border-color:rgba(255,255,255,.12)}
 .btn-accent{border-color:rgba(125,211,252,.3);background:rgba(125,211,252,.1)}
 .btn-accent:hover{border-color:rgba(125,211,252,.5);background:rgba(125,211,252,.18);box-shadow:0 0 24px rgba(125,211,252,.12)}
@@ -258,7 +259,7 @@ header{height:56px;display:flex;align-items:center;justify-content:space-between
 .hero h1 span{background:linear-gradient(135deg,var(--accent),#a78bfa);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}
 .hero p{font-size:15px;line-height:1.6;color:var(--muted);margin:0 auto 28px;max-width:480px}
 .search-box{display:flex;gap:8px;max-width:520px;margin:0 auto;background:rgba(255,255,255,.03);border:1px solid var(--line);border-radius:999px;padding:4px;transition:all .2s}
-.search-box:focus-within{border-color:rgba(125,211,252,.35);box-shadow:0 0 0 3px rgba(125,211,252,.08);background:rgba(255,255,255,.05)}
+.search-box:focus-within{border-color:rgba(125,211,252,.35);box-shadow:0 0 0 3px rgba(125,211,252,.08),0 0 30px rgba(125,211,252,.05);background:rgba(255,255,255,.05)}
 .search-box input{flex:1;border:none;background:transparent;color:var(--text);padding:0 16px;font-size:14px;outline:none;font-family:var(--font-display)}
 .search-box input::placeholder{color:var(--muted)}
 .search-box button{height:40px;padding:0 20px;border-radius:999px;border:none;background:rgba(125,211,252,.14);color:var(--text);font-size:13px;cursor:pointer;transition:all .2s;font-weight:500;font-family:var(--font-display);white-space:nowrap}
@@ -268,10 +269,10 @@ header{height:56px;display:flex;align-items:center;justify-content:space-between
 .destinations{padding:0 24px 80px;position:relative;z-index:1}
 .destinations-inner{max-width:900px;margin:0 auto}
 .section-label{font-size:11px;letter-spacing:.12em;text-transform:uppercase;color:var(--muted);margin-bottom:20px;font-weight:500}
-.dest-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}
+.dest-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;content-visibility:auto;contain-intrinsic-size:300px}
 .dest-card{position:relative;border:1px solid var(--line);border-radius:14px;padding:18px;background:var(--card-bg);cursor:pointer;transition:all .25s ease;text-decoration:none;display:block;overflow:hidden}
 .dest-card::before{content:'';position:absolute;inset:0;background:linear-gradient(135deg,rgba(125,211,252,.04),transparent 60%);opacity:0;transition:opacity .25s;border-radius:inherit}
-.dest-card:hover{border-color:var(--line-hover);background:var(--card-hover);transform:translateY(-3px)}
+.dest-card:hover{border-color:var(--line-hover);background:var(--card-hover);transform:translateY(-3px);backface-visibility:hidden}
 .dest-card:hover::before{opacity:1}
 .dest-card:hover .dest-emoji{transform:scale(1.1)}
 .dest-emoji{font-size:26px;margin-bottom:10px;display:block;transition:transform .25s}
@@ -287,7 +288,7 @@ header{height:56px;display:flex;align-items:center;justify-content:space-between
 .featured-sub{font-size:12px;color:var(--muted);margin:0;line-height:1.4}
 footer{position:fixed;left:0;right:0;bottom:0;padding:10px 20px;padding-bottom:calc(10px + env(safe-area-inset-bottom));border-top:1px solid var(--line);background:rgba(15,20,30,.35);backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);font-size:11px;color:var(--muted);z-index:10;display:flex;align-items:center;gap:12px;justify-content:center}
 input[type=text]{border-radius:999px;border:1px solid var(--line);background:rgba(255,255,255,.03);color:var(--text);padding:12px 16px;outline:none;font-size:16px;font-family:var(--font-display);transition:all .2s}
-input[type=text]:focus{border-color:rgba(125,211,252,.35);box-shadow:0 0 0 3px rgba(125,211,252,.08)}
+input[type=text]:focus{border-color:rgba(125,211,252,.35);box-shadow:0 0 0 3px rgba(125,211,252,.08),0 0 24px rgba(125,211,252,.06)}
 .recent-title{font-size:12px;color:var(--muted);margin-bottom:8px;font-weight:600;letter-spacing:.05em}
 .recent-trip{display:flex;justify-content:space-between;align-items:center;padding:12px 16px;border:1px solid var(--line);border-radius:12px;margin-bottom:6px;background:rgba(255,255,255,.02);text-decoration:none;color:var(--text);transition:all .2s}
 .recent-trip:hover{border-color:var(--line-hover);background:var(--card-hover)}
@@ -307,6 +308,14 @@ pre code{background:none;padding:0;border-radius:0}
 .animate-in-d2{animation-delay:.2s}
 .animate-in-d3{animation-delay:.3s}
 .animate-in-d4{animation-delay:.4s}
+/* Chat message slide-in */
+@keyframes slideUp{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:translateY(0)}}
+.msg-enter{animation:slideUp .35s cubic-bezier(.16,1,.3,1) both}
+/* Card stagger delay */
+.stagger-d1{animation-delay:.05s!important}.stagger-d2{animation-delay:.1s!important}.stagger-d3{animation-delay:.15s!important}.stagger-d4{animation-delay:.2s!important}.stagger-d5{animation-delay:.25s!important}.stagger-d6{animation-delay:.3s!important}
+/* Breathing bg glow */
+@keyframes breathe{0%,100%{opacity:.5}50%{opacity:1}}
+@media(prefers-reduced-motion:no-preference){.bg-glow{animation:breathe 6s ease-in-out infinite}}
 @keyframes fadeUp{from{opacity:0;transform:translateY(16px)}to{opacity:1;transform:translateY(0)}}
 @media(max-width:800px){.dest-grid{grid-template-columns:repeat(2,1fr)}.featured-grid{grid-template-columns:1fr}}
 @media(max-width:480px){.dest-grid{grid-template-columns:1fr}.hero{padding:30px 16px 80px}.search-box{flex-direction:column;border-radius:16px;background:transparent;border:none;gap:8px;padding:0}.search-box input{border:1px solid var(--line);border-radius:999px;padding:12px 16px;height:44px;background:rgba(255,255,255,.03)}.search-box button{width:100%;height:44px}.hero h1{font-size:26px}.destinations{padding:0 16px 60px}.trust-bar{flex-wrap:wrap;gap:8px}}
@@ -321,8 +330,15 @@ window.__SUPABASE_CONFIG__ = {{
 }};
 </script>"""
 
+
+def _font_links() -> str:
+    """Async font loading — non-blocking, text renders in fallback immediately."""
+    return '''<link rel="preconnect" href="https://fonts.cdnfonts.com">
+<link rel="preload" as="style" href="https://fonts.cdnfonts.com/css/geist" onload="this.onload=null;this.rel=\'stylesheet\'">
+<noscript><link rel="stylesheet" href="https://fonts.cdnfonts.com/css/geist"></noscript>'''
+
 def page_landing() -> str:
-    return f"""<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><title>VisePanda — AI China Travel Planner 🇨🇳</title><meta name="description" content="Plan your China trip with AI. Get personalized itineraries, local food recommendations, hotel tips. Beijing, Shanghai, Chengdu, Yunnan — tell us where and how long."><meta property="og:title" content="VisePanda — AI China Travel Planner"><meta property="og:description" content="Personalized China travel itineraries powered by AI"><meta property="og:type" content="website"><meta name="twitter:card" content="summary"><style>{CSS}</style><script defer src='/_vercel/insights/script.js'></script><script defer src='/_vercel/speed-insights/script.js'></script>{_inject_config()}</head><body>
+    return f"""<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><title>VisePanda — AI China Travel Planner 🇨🇳</title><meta name="description" content="Plan your China trip with AI. Get personalized itineraries, local food recommendations, hotel tips. Beijing, Shanghai, Chengdu, Yunnan — tell us where and how long."><meta property="og:title" content="VisePanda — AI China Travel Planner"><meta property="og:description" content="Personalized China travel itineraries powered by AI"><meta property="og:type" content="website"><meta name="twitter:card" content="summary">{_font_links()}<style>{CSS}</style>{_inject_config()}</head><body>
 <div class="bg-shanshui"></div>
 <div class="bg-glow"></div>
 <header><a href="/" class="brand"><span class="brand-dot"></span><span class="brand-name">VisePanda</span></a><div id="authArea"><a href="#" onclick="event.preventDefault();signIn()" class="btn btn-accent">Sign in</a></div></header>
@@ -353,7 +369,6 @@ def page_landing() -> str:
 </div>
 </div>
 <footer><span>No login required</span><span class="dot-sep"></span><span>Last 3 trips saved locally</span><span class="dot-sep"></span><span>Sign in to sync across devices</span></footer>
-<script src="https://esm.sh/@supabase/supabase-js@2"></script>
 <script src="/static/landing.js"></script></body></html>"""
 
 def _render_msg(text: str) -> str:
@@ -378,7 +393,7 @@ def page_share(share_id: str) -> str:
         db.close()
     msgs_html = ''.join(f'<div class="msg {m.role}"><div class=bubble>{_render_msg(m.content)}</div></div>' for m in msgs)
     title = trip.title or 'Shared Trip'
-    return f'''<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>{title} · VisePanda</title><meta name="description" content="AI-planned China trip itinerary"><meta property="og:title" content="{title}"><style>{CSS}.share-header{{text-align:center;padding:24px 16px 12px;position:relative;z-index:1}}.share-header h2{{font-size:20px;margin:0;color:var(--text)}}.share-header p{{color:var(--muted);font-size:14px;margin:4px 0}}.share-thread{{max-width:700px;margin:0 auto;padding:12px 16px 100px;position:relative;z-index:1}}.share-footer{{text-align:center;padding:20px;position:relative;z-index:1}}.msg{{margin:8px 0}}.msg.assistant .bubble{{border:1px solid var(--line);border-radius:14px;padding:10px 14px;line-height:1.5;background:rgba(255,255,255,.03);white-space:pre-wrap}}.msg.user .bubble{{background:rgba(125,211,252,.10);border-color:rgba(125,211,252,.18)}}.bubble{{max-width:700px}}
+    return f'''<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>{title} · VisePanda</title><meta name="description" content="AI-planned China trip itinerary"><meta property="og:title" content="{title}">{_font_links()}<style>{CSS}.share-header{{text-align:center;padding:24px 16px 12px;position:relative;z-index:1}}.share-header h2{{font-size:20px;margin:0;color:var(--text)}}.share-header p{{color:var(--muted);font-size:14px;margin:4px 0}}.share-thread{{max-width:700px;margin:0 auto;padding:12px 16px 100px;position:relative;z-index:1}}.share-footer{{text-align:center;padding:20px;position:relative;z-index:1}}.msg{{margin:8px 0}}.msg.assistant .bubble{{border:1px solid var(--line);border-radius:14px;padding:10px 14px;line-height:1.5;background:rgba(255,255,255,.03);white-space:pre-wrap}}.msg.user .bubble{{background:rgba(125,211,252,.10);border-color:rgba(125,211,252,.18)}}.bubble{{max-width:700px}}
 </style><script defer src='/_vercel/insights/script.js'></script><script defer src='/_vercel/speed-insights/script.js'></script></head><body><div class="bg-shanshui"></div>
 <div class="share-header"><h2>🐼 {title}</h2><p>AI-planned trip · {len(msgs)} messages</p><a href="/" class="btn btn-accent" style="margin-top:16px;display:inline-block">🚀 Create your own trip</a></div>
 <div class="share-thread">{msgs_html}</div>
@@ -387,7 +402,7 @@ def page_share(share_id: str) -> str:
 
 
 def page_trips() -> str:
-    return f'''<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>My Trips · VisePanda</title><style>{CSS}
+    return f'''<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>My Trips · VisePanda</title>{_font_links()}<style>{CSS}
 .trips-grid{{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:16px;padding:20px;max-width:900px;margin:0 auto}}
 .trip-item{{border:1px solid var(--line);border-radius:14px;padding:18px;background:rgba(255,255,255,.02);cursor:pointer;transition:all .2s;text-decoration:none;display:block}}
 .trip-item:hover{{border-color:rgba(125,211,252,.35);background:rgba(125,211,252,.04)}}
@@ -400,7 +415,7 @@ def page_trips() -> str:
 @keyframes fadeIn{{from{{opacity:0}}to{{opacity:1}}}}
 @keyframes scaleIn{{from{{opacity:0;transform:scale(.95)}}to{{opacity:1;transform:scale(1)}}}}
 @keyframes fadeInOut{{0%{{opacity:0;transform:translateX(-50%) translateY(8px)}}15%{{opacity:1;transform:translateX(-50%) translateY(0)}}85%{{opacity:1;transform:translateX(-50%) translateY(0)}}100%{{opacity:0;transform:translateX(-50%) translateY(-8px)}}}}
-</style><script defer src='/_vercel/insights/script.js'></script><script defer src='/_vercel/speed-insights/script.js'></script></head><body>
+</style></head><body>
 <div class="bg-shanshui"></div>
 <header><a href="/" class="brand"><span class="brand-dot"></span><span class="brand-name">VisePanda</span></a><div><a href="/" class="btn">Home</a></div></header>
 <main style="position:relative;z-index:1;min-height:calc(100vh-56px);padding:20px 16px 80px">
@@ -412,7 +427,7 @@ def page_trips() -> str:
 </body></html>'''
 
 def page_chat() -> str:
-    return f"""<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><title>Chat · VisePanda — AI China Travel Planner</title><meta name="description" content="Chat with VisePanda AI to plan your China trip. Get day-by-day itineraries, food guides, and practical travel tips."><style>{CSS}
+    return f"""<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><title>Chat · VisePanda — AI China Travel Planner</title><meta name="description" content="Chat with VisePanda AI to plan your China trip. Get day-by-day itineraries, food guides, and practical travel tips.">{_font_links()}<style>{CSS}
 .layout{{display:flex;height:calc(100vh-56px);position:relative;z-index:1}}
 #thread{{flex:1;overflow:auto;padding:18px 16px 120px}}
 .msg{{display:flex;margin:8px 0}}
@@ -426,11 +441,19 @@ def page_chat() -> str:
 #msgForm{{display:flex;gap:10px;align-items:center;max-width:800px;margin:0 auto}}
 #msgInput{{flex:1;height:44px;padding:0 14px;font-size:14px}}
 #sendBtn{{height:44px;padding:0 20px;background:rgba(125,211,252,.14);border:1px solid rgba(125,211,252,.35);border-radius:999px;color:var(--text);cursor:pointer;font-size:14px}}
-#sendBtn:hover{{background:rgba(125,211,252,.22)}}
+#sendBtn:hover{{background:rgba(125,211,252,.22);transform:scale(1.04);box-shadow:0 0 20px rgba(125,211,252,.15)}}#sendBtn:active{{transform:scale(.96)}}
 #quickReplies{{display:flex;flex-wrap:wrap;gap:4px;padding:6px 0;max-width:800px;margin:0 auto 8px}}
 .cursor{{animation:blink 1s step-end infinite}}
 @keyframes blink{{0%,100%{{opacity:1}}50%{{opacity:0}}}}
-.skeleton{{height:16px;border-radius:8px;background:linear-gradient(90deg,rgba(255,255,255,.04)25%,rgba(255,255,255,.08)50%,rgba(255,255,255,.04)75%);background-size:200%100%;animation:shimmer 1.5s infinite}}
+/* Skeleton v2 — polished shimmer + variants */
+.skeleton,.skel-text{height:16px;border-radius:8px;background:linear-gradient(110deg,rgba(255,255,255,.03)30%,rgba(255,255,255,.09)50%,rgba(255,255,255,.03)70%);background-size:200%100%;animation:shimmer 1.8s cubic-bezier(.4,0,.2,1) infinite}
+.skel-card{height:120px;border-radius:14px;background:linear-gradient(135deg,rgba(255,255,255,.02),rgba(125,211,252,.04));overflow:hidden;position:relative}
+.skel-card::after{content:'';position:absolute;inset:0;background:linear-gradient(110deg,transparent 30%,rgba(125,211,252,.06)50%,transparent 70%);background-size:200%100%;animation:shimmer 1.8s cubic-bezier(.4,0,.2,1) infinite}
+.skel-circle{width:36px;height:36px;border-radius:50%;background:linear-gradient(110deg,rgba(255,255,255,.03)30%,rgba(255,255,255,.09)50%,rgba(255,255,255,.03)70%);background-size:200%100%;animation:shimmer 1.8s cubic-bezier(.4,0,.2,1) infinite}
+.skel-msg{display:flex;gap:10px;align-items:flex-start;margin:8px 0}
+.skel-msg .skel-lines{flex:1}
+.skel-msg .skel-lines .skel-text:first-child{width:75%;margin-bottom:6px}
+.skel-msg .skel-lines .skel-text:last-child{width:50%}
 @keyframes shimmer{{0%{{background-position:200%0}}100%{{background-position:-200%0}}}}
 .trip-card{{border:1px solid var(--line);border-left:3px solid var(--accent);border-radius:12px;padding:14px 14px 14px 11px;margin:6px 0;background:linear-gradient(135deg,rgba(125,211,252,.06),transparent)}}
 .trip-card b{{color:var(--accent)}}
@@ -450,9 +473,8 @@ def page_chat() -> str:
 <script src="/static/chat.js"></script></body></html>"""
 
 def page_auth_callback() -> str:
-    return f"""<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Signing in…</title><style>body{{margin:0;min-height:100vh;display:flex;align-items:center;justify-content:center;background:#0a0f17;color:#fff;font-family:sans-serif;text-align:center}}.muted{{color:rgba(255,255,255,.5);font-size:14px}}</style><script defer src='/_vercel/insights/script.js'></script><script defer src='/_vercel/speed-insights/script.js'></script>{_inject_config()}</head><body>
+    return f"""<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Signing in…</title>{_font_links()}<style>body{{margin:0;min-height:100vh;display:flex;align-items:center;justify-content:center;background:#0a0f17;color:#fff;font-family:sans-serif;text-align:center}}.muted{{color:rgba(255,255,255,.5);font-size:14px}}</style>{_inject_config()}</head><body>
 <div><div style="font-size:18px;font-weight:650;margin-bottom:8px">Signing in…</div><div class="muted">Redirecting…</div></div>
-<script src="https://esm.sh/@supabase/supabase-js@2"></script>
 <script src="/static/auth.js"></script></body></html>"""
 
 # ══════════════════════════════════════════════════════════

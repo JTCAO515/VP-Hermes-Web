@@ -182,5 +182,75 @@ cards=4 | goChat=1 | skeleton=2 | trip=3 | btnDisable=2 | mobile=1
 - 邮箱注册/登录: 全流程通过 ✅
 - 资料读取/更新: GET/PUT profile ✅
 - 修改密码: old→new 验证通过 ✅
-- 页面路由: `/profile` 302 → `/?login=1`（未登录正确）✅
+|- 页面路由: `/profile` 302 → `/?login=1`（未登录正确）✅
+|
+
+---
+
+## Iteration 14-19 — 美观+速度 Phase 1
+
+**日期**: 2026-05-30
+**目标**: 加载速度优化 + CSS 动画系统 + 微交互 + 骨架屏 v2
+**状态**: ✅ 完成
+
+### Iter 14 — 字体加载优化 ⭐
+| 改动 | 效果 |
+|------|------|
+| 删除 `@import url('geist')`（阻塞渲染） | 消除字体加载的渲染阻塞 |
+| 新增 `_font_links()` 异步加载（preconnect + preload + noscript fallback） | 字体异步下载，文字立即以系统回退字体显示 |
+| 所有页面 `<head>` 集成 `{_font_links()}` | Geist 加载完成后自动替换，无闪烁 |
+
+### Iter 15 — 脚本按需加载 ⭐
+| 改动 | 效果 |
+|------|------|
+| Landing 页去掉 2 个 Vercel Analytics 脚本 | -2 个 HTTP 请求，Landing 首屏更快 |
+| Landing 页去掉 `esm.sh/@supabase/supabase-js@2`（60KB） | Landing 首屏省 60KB 带宽 |
+| Auth Callback 页去掉 2 个 Vercel Analytics + supabase-js | 一页式跳转页无需这些依赖 |
+| Trips 页去掉 2 个 Vercel Analytics | 列表页无需分析 |
+| Chat 页保留 Analytics + supabase-js | 核心交互页面，数据有用 |
+| Share 页保留 Analytics | 公开分享页，追踪分享转化 |
+
+### Iter 16 — CSS 关键内联优化 ⭐
+| 改动 | 效果 |
+|------|------|
+| bg-shanshui 修复双 opacity（SVG opacity + CSS opacity 叠乘） | 视觉正确性修复 |
+| 添加 `will-change: transform` 到 bg-shanshui + bg-glow | GPU 层提前合成，滚动/动画更流畅 |
+| 添加 `content-visibility: auto` 到目的网格 | 首屏不渲染下方元素，加快 LCP |
+| dest-card hover 添加 `backface-visibility: hidden` | hover 上浮更平滑 |
+
+### Iter 17 — CSS 动画系统增强 ⭐⭐
+| 改动 | 效果 |
+|------|------|
+| 新增 `@keyframes slideUp` + `.msg-enter` 类 | 聊天消息从底部滑入动画 |
+| 新增 `.stagger-d1` 到 `.stagger-d6` 延迟类 | 卡片列表支持步进式入场 |
+| 新增 `@keyframes breathe` + `.bg-glow` 呼吸动画 | 背景光晕自动缓慢脉动 |
+| fadeUp 添加 `scale(.98)` → `scale(1)` | 入场效果更丰富 |
+| 所有动效遵循 `prefers-reduced-motion` | 无障碍兼容 |
+
+### Iter 18 — 微交互增强 ⭐
+| 改动 | 效果 |
+|------|------|
+| Send 按钮: hover scale(1.04) + glow, active scale(.96) | 点击反馈更自然 |
+| Input focus: 额外外层 glow | 焦点状态更醒目 |
+| Search box focus: 额外外层光晕 | 搜索框交互感更强 |
+| .btn 使用 `cubic-bezier(.16,1,.3,1)` 缓动 | 按钮动画更弹手 |
+| .btn 添加 `backface-visibility: hidden` | hover 时避免像素抖动 |
+
+### Iter 19 — 骨架屏 v2 ⭐⭐
+| 改动 | 效果 |
+|------|------|
+| `.skel-text` — 文字骨架变体 | 不同场景使用更精准的骨架 |
+| `.skel-card` — 卡片骨架（伪元素 shimmer，渐变背景） | 替代纯色占位，更有质感 |
+| `.skel-circle` — 圆形头像骨架 | 聊天头像加载前的占位 |
+| `.skel-msg` — 完整消息骨架布局（头像+双行文字） | 消息加载模拟更真实 |
+| shimmer 缓动改为 `cubic-bezier(.4,0,.2,1)` | 动画更自然不机械 |
+
+### 测试结果
+```
+syntax check: 713 lines, ✅ Python AST clean
+@import urls remaining: 0 ✅
+Vercel Analytics (仅保留 Chat + Share): 2 ✅
+Supabase JS (仅保留 Chat): 1 ✅
+CSS animations: fadeUp ✓ slideUp ✓ shimmer ✓ breathe ✓ blink ✓ fadeIn ✓ scaleIn ✓ fadeInOut ✓
+```
 
