@@ -326,3 +326,24 @@ supabase-js: ✅ 0 script tags (dynamic import only)
 |------|------|
 | `GZipMiddleware(minimum_size=500)` | HTML/CSS减5-10倍 |
 | 删除废弃 `static/pwa.js` | 清理 |
+
+---
+
+## Iteration 120-121 — Bug修复 + 英文化
+
+**日期**: 2026-05-30
+**目标**: 修复对话不可用 + 站点英文化
+**状态**: ✅ 完成
+
+### Iter 120 — Bug修复 ⭐⭐
+| Bug | 根因 | 修复 |
+|-----|------|------|
+| 对话发送后一直显示骨架，无回复 | 骨架CSS类名`skel-block/skel-line/skel-w-*`不存在（Iter 112只加了skel-text/skel-card） | 新增`.skel-block`, `.skel-line.skel-w-*` 宽度变体 |
+| SSE stream返回error时前端忽略 | `j.error` 在chat.js的stream解析中没有处理分支 | 新增`if (j.error)` 处理：显示错误文字+恢复按钮 |
+
+### Iter 121 — 英文化 ⭐
+| 改动 | 说明 |
+|------|------|
+| 所有目的地卡片中文prompt→英文 | `北京3天深度游` → `Beijing 3 days history culture mid budget` |
+| welcome chips中文→英文 | `北京3天行程` → `Beijing 3-day itinerary` |
+| 移除i18n自动检测中文逻辑 | 站点默认英文，不再根据浏览器语言自动切换中文 |
