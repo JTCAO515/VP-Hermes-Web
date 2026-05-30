@@ -168,6 +168,13 @@ async function send(text) {
                 if (d === '[DONE]') continue;
                 try {
                     const j = JSON.parse(d);
+                    if (j.error) {
+                        b.innerHTML = '<span style=color:#fca5a5>' + H(j.error) + '</span>';
+                        sbb.disabled = false;
+                        sbb.textContent = 'Send';
+                        smartScroll();
+                        return;
+                    }
                     if (j.token) f += j.token;
                     if (j.trip_update) {
                         // Notify user that itinerary was detected and saved

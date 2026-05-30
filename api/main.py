@@ -377,12 +377,12 @@ def page_landing() -> str:
 <div class="destinations-inner">
 <div class="section-label">Popular destinations</div>
 <div class="dest-grid">
-<a class="dest-card featured" href="#" onclick="event.preventDefault();goChat('北京3天深度游,喜欢历史文化,中等预算')"><div class="dest-accent"></div><span class="dest-emoji">🏯</span><div class="dest-title">Beijing</div><div class="dest-sub">Forbidden City · Wall · Hutongs</div></a>
-<a class="dest-card" href="#" onclick="event.preventDefault();goChat('成都4天美食之旅,火锅串串,悠闲逛')"><div class="dest-accent"></div><span class="dest-emoji">🐼</span><div class="dest-title">Chengdu</div><div class="dest-sub">Hotpot · Pandas · Tea houses</div></a>
-<a class="dest-card" href="#" onclick="event.preventDefault();goChat('云南7天,大理丽江香格里拉,自然风光')"><div class="dest-accent"></div><span class="dest-emoji">🏔️</span><div class="dest-title">Yunnan</div><div class="dest-sub">Dali · Lijiang · Shangri-La</div></a>
-<a class="dest-card" href="#" onclick="event.preventDefault();goChat('上海3天,摩登都市,外滩迪士尼')"><div class="dest-accent"></div><span class="dest-emoji">🌃</span><div class="dest-title">Shanghai</div><div class="dest-sub">Bund · Disney · French Concession</div></a>
-<a class="dest-card" href="#" onclick="event.preventDefault();goChat('西安3天历史游,兵马俑古城墙,中等预算')"><div class="dest-accent"></div><span class="dest-emoji">🏛️</span><div class="dest-title">Xi'an</div><div class="dest-sub">Terracotta · City Wall · Muslim Quarter</div></a>
-<a class="dest-card wide" href="#" onclick="event.preventDefault();goChat('桂林4天,漓江阳朔,自然风光')"><div class="dest-accent"></div><span class="dest-emoji">🛶</span><div class="dest-title">Guilin</div><div class="dest-sub">Li River · Yangshuo · Karst Mountains</div></a>
+<a class="dest-card featured" href="#" onclick="event.preventDefault();goChat('Beijing 3 days history culture mid budget')"><div class="dest-accent"></div><span class="dest-emoji">🏯</span><div class="dest-title">Beijing</div><div class="dest-sub">Forbidden City · Wall · Hutongs</div></a>
+<a class="dest-card" href="#" onclick="event.preventDefault();goChat('Chengdu 4 days food tour hotpot relaxed')"><div class="dest-accent"></div><span class="dest-emoji">🐼</span><div class="dest-title">Chengdu</div><div class="dest-sub">Hotpot · Pandas · Tea houses</div></a>
+<a class="dest-card" href="#" onclick="event.preventDefault();goChat('Yunnan 7 days Dali Lijiang Shangri-La nature')"><div class="dest-accent"></div><span class="dest-emoji">🏔️</span><div class="dest-title">Yunnan</div><div class="dest-sub">Dali · Lijiang · Shangri-La</div></a>
+<a class="dest-card" href="#" onclick="event.preventDefault();goChat('Shanghai 3 days Bund Disney modern')"><div class="dest-accent"></div><span class="dest-emoji">🌃</span><div class="dest-title">Shanghai</div><div class="dest-sub">Bund · Disney · French Concession</div></a>
+<a class="dest-card" href="#" onclick="event.preventDefault();goChat('Xi'an 3 days terracotta city wall mid budget')"><div class="dest-accent"></div><span class="dest-emoji">🏛️</span><div class="dest-title">Xi'an</div><div class="dest-sub">Terracotta · City Wall · Muslim Quarter</div></a>
+<a class="dest-card wide" href="#" onclick="event.preventDefault();goChat('Guilin 4 days Li River Yangshuo nature')"><div class="dest-accent"></div><span class="dest-emoji">🛶</span><div class="dest-title">Guilin</div><div class="dest-sub">Li River · Yangshuo · Karst Mountains</div></a>
 </div>
 <div id="recentTrips" style="display:none;margin-top:20px;text-align:left"></div>
 </div>
@@ -478,7 +478,9 @@ def page_chat() -> str:
 .cursor{{animation:blink 1s step-end infinite}}
 @keyframes blink{{0%,100%{{opacity:1}}50%{{opacity:0}}}}
 /* Skeleton v2 — polished shimmer + variants */
-.skeleton,.skel-text{height:16px;border-radius:8px;background:linear-gradient(110deg,rgba(255,255,255,.03)30%,rgba(255,255,255,.09)50%,rgba(255,255,255,.03)70%);background-size:200%100%;animation:shimmer 1.8s cubic-bezier(.4,0,.2,1) infinite}
+.skel-block,.skel-text{height:16px;border-radius:8px;background:linear-gradient(110deg,rgba(255,255,255,.03)30%,rgba(255,255,255,.09)50%,rgba(255,255,255,.03)70%);background-size:200%100%;animation:shimmer 1.8s cubic-bezier(.4,0,.2,1) infinite}
+.skel-line.skel-w-70{width:70%}.skel-line.skel-w-50{width:50%}.skel-line.skel-w-60{width:60%}.skel-line.skel-w-40{width:40%}.skel-line.skel-w-80{width:80%}.skel-line.skel-w-30{width:30%}
+.skel-block{margin-bottom:8px}
 .skel-card{height:120px;border-radius:14px;background:linear-gradient(135deg,rgba(255,255,255,.02),rgba(125,211,252,.04));overflow:hidden;position:relative}
 .skel-card::after{content:'';position:absolute;inset:0;background:linear-gradient(110deg,transparent 30%,rgba(125,211,252,.06)50%,transparent 70%);background-size:200%100%;animation:shimmer 1.8s cubic-bezier(.4,0,.2,1) infinite}
 .skel-circle{width:36px;height:36px;border-radius:50%;background:linear-gradient(110deg,rgba(255,255,255,.03)30%,rgba(255,255,255,.09)50%,rgba(255,255,255,.03)70%);background-size:200%100%;animation:shimmer 1.8s cubic-bezier(.4,0,.2,1) infinite}

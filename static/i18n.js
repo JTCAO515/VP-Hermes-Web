@@ -162,14 +162,8 @@ function setLang(lang) {
     location.reload();
 }
 
-// Auto-detect browser language
-if (!localStorage.getItem('vp_lang')) {
-    var nav = navigator.language || '';
-    if (nav.startsWith('zh')) {
-        LANG = 'zh';
-        localStorage.setItem('vp_lang', 'zh');
-    }
-}
+// Auto-detect browser language — disabled: site is English-native
+// Users can manually switch via the language toggle if available
 
 // DOM walk — replace text for elements with data-i18n attributes
 function i18nInit() {
