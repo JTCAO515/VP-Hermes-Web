@@ -277,6 +277,13 @@ header{height:56px;display:flex;align-items:center;justify-content:space-between
 .dest-grid .dest-card.wide .dest-emoji{font-size:32px;margin-bottom:0}
 .dest-grid .dest-card.wide .dest-title{font-size:16px}
 .dest-grid .dest-card.wide .dest-sub{font-size:12px}
+/* Image-backed dest cards */
+.dest-img-wrap{width:100%;height:100px;border-radius:8px;overflow:hidden;margin-bottom:8px;position:relative;background:var(--bg1)}
+.dest-bg{width:100%;height:100%;object-fit:cover;transition:transform .35s cubic-bezier(.16,1,.3,1)}
+.dest-card:hover .dest-bg{transform:scale(1.07)}
+.dest-emoji-fallback{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-size:28px}
+.featured .dest-img-wrap{height:140px}
+.dest-card.wide .dest-img-wrap{width:120px;height:80px;flex-shrink:0;margin-bottom:0}
 .dest-card{position:relative;border:1px solid var(--line);border-radius:14px;padding:18px;background:var(--card-bg);cursor:pointer;transition:all .25s ease;text-decoration:none;display:block;overflow:hidden}
 .dest-card::before{content:'';position:absolute;inset:0;background:linear-gradient(135deg,rgba(125,211,252,.04),transparent 60%);opacity:0;transition:opacity .25s;border-radius:inherit}
 .dest-card:hover{border-color:var(--line-hover);background:var(--card-hover);transform:translateY(-3px);backface-visibility:hidden}
@@ -324,7 +331,7 @@ pre code{background:none;padding:0;border-radius:0}
 @keyframes breathe{0%,100%{opacity:.5}50%{opacity:1}}
 @media(prefers-reduced-motion:no-preference){.bg-glow{animation:breathe 6s ease-in-out infinite}}
 @keyframes fadeUp{from{opacity:0;transform:translateY(16px)}to{opacity:1;transform:translateY(0)}}
-@media(max-width:800px){.dest-grid{grid-template-columns:repeat(2,1fr)}.dest-grid .dest-card.featured{grid-row:auto}.dest-grid .dest-card.wide{grid-column:auto;flex-direction:column;text-align:center;padding:18px;gap:8px}.dest-grid .dest-card.wide .dest-emoji{font-size:26px;margin-bottom:10px}.featured-grid{grid-template-columns:1fr}}
+@media(max-width:800px){.dest-grid{grid-template-columns:repeat(2,1fr)}.dest-grid .dest-card.featured{grid-row:auto}.dest-grid .dest-card.wide{grid-column:auto;flex-direction:column;text-align:center;padding:18px;gap:8px}.dest-grid .dest-card.wide .dest-emoji{font-size:26px;margin-bottom:10px}.dest-card.wide .dest-img-wrap{width:100%;height:100px;margin-bottom:8px}.featured-grid{grid-template-columns:1fr}}
 /* Hero decorative elements */
 .hero-decor{position:absolute;top:50%;right:-5%;width:400px;height:400px;pointer-events:none;z-index:0;opacity:.35}
 .hero-decor-circle{position:absolute;top:50%;left:50%;width:300px;height:300px;border-radius:50%;border:1px solid rgba(125,211,252,.12);transform:translate(-50%,-50%);animation:float 8s ease-in-out infinite}
