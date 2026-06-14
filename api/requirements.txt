@@ -1,6 +1,0 @@
-fastapi
-uvicorn
-httpx
-sqlalchemy
-python-jose
-cryptography
