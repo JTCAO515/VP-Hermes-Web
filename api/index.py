@@ -631,9 +631,11 @@ def _handle_map(start_response):
 def _handle_config(start_response):
     """GET /api/config — expose client-safe config (AMap key, etc.)."""
     amap_key = os.environ.get("AMAP_KEY", "")
-    use_amap = bool(amap_key)
+    amap_security = os.environ.get("AMAP_SECURITY_CODE", "")
+    use_amap = bool(amap_key and amap_security)
     return _json(start_response, {
         "amap_key": amap_key if use_amap else "",
+        "amap_security_code": amap_security if use_amap else "",
         "use_amap": use_amap,
         "version": "3.0.3",
     })

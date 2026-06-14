@@ -1000,8 +1000,8 @@ const VP = (function(){
 
     // Use API config to decide AMap vs Leaflet
     fetch('/api/config').then(r => r.json()).then(config => {
-      if (config.use_amap && config.amap_key) {
-        initAMap(config.amap_key);
+      if (config.use_amap && config.amap_key && config.amap_security_code) {
+        initAMap(config.amap_key, config.amap_security_code);
       } else {
         initLeafletMap();
       }
@@ -1032,12 +1032,17 @@ const VP = (function(){
     mapInitialized = true;
   }
 
-  function initAMap(apiKey) {
+  function initAMap(apiKey, securityCode) {
     // AMap initialization — load script dynamically
     const canvas = document.getElementById('map-canvas');
     if (!canvas) return;
 
-    // Create a placeholder and load AMap JS API
+    // Set security config BEFORE loading the API
+    window._AMapSecurityConfig = {
+      securityJsCode: securityCode || '',
+    };
+
+    // Load AMap JS API v2.0
     const script = document.createElement('script');
     script.src = `https://webapi.amap.com/maps?v=2.0&key=${apiKey}`;
     script.onload = () => {
@@ -1046,11 +1051,10 @@ const VP = (function(){
         zoom: 4,
         center: [104.0, 35.0],
         mapStyle: 'amap://styles/darkblue',
-        layers: [new AMap.TileLayer.Satellite()],
       });
       mapInstance = map;
 
-      // Plot markers from MAP_DATA
+      // Plot markers
       fetch('/api/map').then(r => r.json()).then(data => {
         const cities = data.cities || {};
         Object.keys(cities).forEach(key => {
