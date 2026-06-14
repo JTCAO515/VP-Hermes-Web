@@ -1,6 +1,6 @@
-# PLAN.md — VisePanda v3.0.1 迭代路线图
+# PLAN.md — VisePanda v3.0.3 迭代路线图
 
-> PM 视角 · 持续迭代 · 从 v2.x 到 v3 全面重构
+> PM视角 · 持续迭代 · 从v2.x到v3全面重构
 
 ---
 
@@ -43,46 +43,21 @@ LLM: DeepSeek V4 Flash (OpenAI 兼容 SSE 流式)
 | Iter 123 | 暗色/亮色主题切换 | 设计思路保留 |
 | Iter 124 | 移动端深度适配 | 适配经验保留 |
 
-## v3.0.1 迭代计划
+## Completed Iterations
 
-```
-Phase 1 (6 轮)      Phase 2 (5 轮)       Phase 3 (4 轮)
- 骨架搭建      →    体验打磨       →     深度增强
- Iter 1-6           Iter 7-11            Iter 12-15
- 能跑起来            好看+好用           有料+有趣
-```
+| Iter | Version | Module | Description |
+|:----:|:-------:|--------|-------------|
+| 1 | v3.0.1 | 🏗️ WSGI Skeleton | `api/index.py` + `vercel.json` + SPA entry |
+| 2 | v3.0.1 | 📚 Knowledge Base | 36 cities, food, hotels, tips → JSON migration |
+| 3 | v3.0.1 | 💬 Prompt + UI | System prompt injection + city cards + hero |
+| 4 | v3.0.1 | 🎨 Markdown + Modal | MD renderer, stop button, city detail modal, chat history |
+| 5 | v3.0.1 | ✨ Polish + Responsive | Card animations, light theme, responsive, multi-turn |
+| 6 | v3.0.1 | 💾 Trip Persistence | Save/load/share trips, price estimate, trip validation |
+| 7 | v3.0.1 | 🗺️ Maps + Smart | Leaflet dark maps, POI markers, smart prompt enhancement |
+| 8 | v3.0.2 | 🔍 FAQ Matching | 10-category FAQ engine, query expansion, match badge |
+| 9 | v3.0.3 | 🗺️ Map Tab | Full China overview map, 36-city coordinates, AMap/Leaflet |
 
-### Phase 1：骨架搭建（Iter 1-6）
-
-| Iter | 模块 | 内容 | 复杂度 |
-|:----:|------|------|:------:|
-| **1** | 🏗️ WSGI 骨架 | `api/index.py`（WSGI handler + 路由 + 健康检查）+ `vercel.json` + `web/index.html` 入口 | ⭐ |
-| **2** | 🐼 前端骨架 | Landing 页：熊猫 Hero + 33 城卡片网格 + 导航 + 暗色/亮色 CSS 变量体系 | ⭐⭐⭐ |
-| **3** | 💬 聊天引擎 | `/api/chat` SSE 流式端点 + DeepSeek V4 Flash 集成 + 前端聊天 UI | ⭐⭐ |
-| **4** | 📚 知识库导入 | 33 城知识库 JSON 化 + Prompt 集成 + LLM 检索增强 | ⭐⭐ |
-| **5** | 🧰 工具箱迁移 | 打包/价格/签证/语言/紧急 → JSON 数据 + 聊天集成 | ⭐⭐ |
-| **6** | 🎯 v3.0.1 发版 | 全量测试 + 线上修复 + PLAN.md 更新 | ⭐ |
-
-### Phase 2：体验打磨（Iter 7-11）
-
-| Iter | 模块 | 内容 | 复杂度 |
-|:----:|------|------|:------:|
-| **7** | 🎨 设计精修 | CSS 动画系统（卡片入场/消息滑入/骨架屏）+ `popular-web-designs` 参考 | ⭐⭐⭐ |
-| **8** | 📱 响应式全端 | 桌面/平板/移动断点 + 触屏优化 + 安全区域 | ⭐⭐ |
-| **9** | 🔄 多轮对话 | 对话上下文管理 + 行程迭代（局部修改 + 对比方案） | ⭐⭐⭐ |
-| **10** | 🌓 亮色主题完善 | 亮色全组件适配 + 切换动画 + 持久化 | ⭐⭐ |
-| **11** | ⚡ 性能优化 | 懒加载 + CSS 内联 + caching + Lighthouse ≥ 85 | ⭐⭐ |
-
-### Phase 3：深度增强（Iter 12-15）
-
-| Iter | 模块 | 内容 | 复杂度 |
-|:----:|------|------|:------:|
-| **12** | 💾 行程持久化 | JSON 项目数据库 + 历史对话保存 | ⭐⭐ |
-| **13** | 🗺️ 地图视图 | Leaflet 暗色主题 + POI 标注 | ⭐⭐⭐ |
-| **14** | 🔗 行程分享 | 分享链接 + 行程对比输出（2-3 方案） | ⭐⭐ |
-| **15** | 🌟 智能增强 | 价格估算 + 行程验证 + 特殊需求（素食/无障碍/老人） | ⭐⭐⭐ |
-
-### Phase 4：后续规划
+## v3.1 迭代计划
 
 | 方向 | 内容 | 时机 |
 |------|------|------|

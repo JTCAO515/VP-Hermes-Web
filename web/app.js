@@ -67,6 +67,7 @@ const VP = (function(){
     if (view === 'trips') renderTrips();
     if (view === 'tools') loadTools();
     if (view === 'home') loadHomeCities();
+    if (view === 'map') initMap();
 
     window.location.hash = view;
   }
@@ -943,6 +944,204 @@ const VP = (function(){
     }
   });
 
+  // ── Map State ──
+  let mapInstance = null;
+  let mapMarkers = [];
+  let mapInitialized = false;
+
+  // ── City Tags (for map markers) ──
+  const CITY_TAGS = {
+    'beijing': {emoji: '🏛️', tag: 'popular', desc: 'Capital — Forbidden City, Great Wall, imperial history'},
+    'shanghai': {emoji: '🌃', tag: 'popular', desc: 'Global metropolis — Bund, futuristic skyline, shopping'},
+    'guangzhou': {emoji: '🍜', tag: 'popular', desc: 'Canton cuisine hub — dim sum, Cantonese culture'},
+    'shenzhen': {emoji: '🚀', tag: 'regional', desc: 'Tech powerhouse — innovation, modern parks'},
+    'chengdu': {emoji: '🐼', tag: 'popular', desc: 'Panda homeland — spicy food, teahouses'},
+    'chongqing': {emoji: '🌆', tag: 'popular', desc: 'Mountain city — cyberpunk skyline, hotpot'},
+    'hangzhou': {emoji: '🏞️', tag: 'popular', desc: 'West Lake — poetic gardens, tea culture'},
+    'suzhou': {emoji: '🏯', tag: 'regional', desc: 'Classic gardens — silk, canals, water towns'},
+    'kunming': {emoji: '🌸', tag: 'regional', desc: 'Spring City — year-round mild weather, Stone Forest'},
+    'dali': {emoji: '🏔️', tag: 'hidden-gem', desc: 'Ancient town — snow mountains, Erhai Lake, indie cafes'},
+    'lijiang': {emoji: '🏘️', tag: 'hidden-gem', desc: 'UNESCO old town — Naxi culture, Jade Dragon Mountain'},
+    'guilin': {emoji: '🏔️', tag: 'popular', desc: 'Karst landscapes — Li River, Yangshuo countryside'},
+    'xian': {emoji: '🏛️', tag: 'popular', desc: 'Terracotta Warriors — ancient capital, Muslim Quarter'},
+    'wuhan': {emoji: '🌉', tag: 'regional', desc: 'Central hub — Yangtze bridges, university district'},
+    'changsha': {emoji: '🌶️', tag: 'regional', desc: 'Spice central — Orange Island, vibrant nightlife'},
+    'nanjing': {emoji: '🏛️', tag: 'popular', desc: 'Ancient capital — Ming tombs, Confucius Temple'},
+    'qingdao': {emoji: '🍺', tag: 'regional', desc: 'Coastal city — Tsingtao beer, German architecture'},
+    'dalian': {emoji: '🏖️', tag: 'regional', desc: 'Seaside resort — European vibes, seafood'},
+    'xiamen': {emoji: '🏝️', tag: 'regional', desc: 'Island garden — Gulangyu, colonial architecture'},
+    'harbin': {emoji: '❄️', tag: 'hidden-gem', desc: 'Ice City — winter festival, Russian heritage'},
+    'tibet': {emoji: '🏔️', tag: 'hidden-gem', desc: 'Roof of the World — Potala Palace, high-altitude wonder'},
+    'lanzhou': {emoji: '🍜', tag: 'hidden-gem', desc: 'Silk Road gateway — beef noodles, Yellow River'},
+    'dunhuang': {emoji: '🏜️', tag: 'hidden-gem', desc: 'Mogao Caves — Silk Road art, sand dunes'},
+    'urumqi': {emoji: '🏔️', tag: 'hidden-gem', desc: 'Central Asia gateway — bazaars, Tianshan Mountains'},
+    'huangshan': {emoji: '🏔️', tag: 'popular', desc: 'Yellow Mountain — iconic peaks, hot springs'},
+    'zhangjiajie': {emoji: '🌲', tag: 'regional', desc: 'Avatar Mountains — towering sandstone pillars'},
+    'luoyang': {emoji: '🏛️', tag: 'regional', desc: 'Ancient capital — Longmen Grottoes, peonies'},
+    'kaifeng': {emoji: '🏛️', tag: 'hidden-gem', desc: 'Song dynasty capital — Millennium City Park'},
+    'hohhot': {emoji: '🌿', tag: 'hidden-gem', desc: 'Inner Mongolia — grasslands, dairy culture'},
+    'guiyang': {emoji: '🌳', tag: 'hidden-gem', desc: 'Green capital — minority villages, Huangguoshu Falls'},
+    'fuzhou': {emoji: '🏖️', tag: 'hidden-gem', desc: 'Coastal gateway — hot springs, Min culture'},
+    'ningbo': {emoji: '🏯', tag: 'hidden-gem', desc: 'Port city — Tianyi Pavilion, Dongqian Lake'},
+    'nanning': {emoji: '🌴', tag: 'hidden-gem', desc: 'Green City — ASEAN gateway, tropical vibes'},
+    'haikou': {emoji: '🏖️', tag: 'hidden-gem', desc: 'Island capital — beaches, coconut plantations'},
+    'sanya': {emoji: '🏖️', tag: 'popular', desc: 'China\'s Hawaii — tropical beaches, resorts'},
+    'macau': {emoji: '🎰', tag: 'regional', desc: 'Las Vegas of Asia — Portuguese heritage, casinos'},
+  };
+
+  // ── Map Functions ──
+  function initMap() {
+    const canvas = document.getElementById('map-canvas');
+    if (!canvas) return;
+    if (mapInitialized && mapInstance) {
+      mapInstance.invalidateSize();
+      return;
+    }
+
+    // Use API config to decide AMap vs Leaflet
+    fetch('/api/config').then(r => r.json()).then(config => {
+      if (config.use_amap && config.amap_key) {
+        initAMap(config.amap_key);
+      } else {
+        initLeafletMap();
+      }
+    }).catch(() => {
+      initLeafletMap();
+    });
+  }
+
+  function initLeafletMap() {
+    const canvas = document.getElementById('map-canvas');
+    if (!canvas) return;
+
+    mapInstance = L.map('map-canvas', {
+      center: [35.0, 108.0],
+      zoom: 4,
+      zoomControl: true,
+      attributionControl: true,
+    });
+
+    // Dark tile layer
+    L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', {
+      attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OSM</a> &copy; <a href="https://carto.com/">CARTO</a>',
+      subdomains: 'abcd',
+      maxZoom: 19,
+    }).addTo(mapInstance);
+
+    plotMapMarkers();
+    mapInitialized = true;
+  }
+
+  function initAMap(apiKey) {
+    // AMap initialization — load script dynamically
+    const canvas = document.getElementById('map-canvas');
+    if (!canvas) return;
+
+    // Create a placeholder and load AMap JS API
+    const script = document.createElement('script');
+    script.src = `https://webapi.amap.com/maps?v=2.0&key=${apiKey}`;
+    script.onload = () => {
+      if (typeof AMap === 'undefined') return;
+      const map = new AMap.Map('map-canvas', {
+        zoom: 4,
+        center: [104.0, 35.0],
+        mapStyle: 'amap://styles/darkblue',
+        layers: [new AMap.TileLayer.Satellite()],
+      });
+      mapInstance = map;
+
+      // Plot markers from MAP_DATA
+      fetch('/api/map').then(r => r.json()).then(data => {
+        const cities = data.cities || {};
+        Object.keys(cities).forEach(key => {
+          const c = cities[key];
+          if (!c.lat || !c.lng) return;
+          const tags = CITY_TAGS[key] || {emoji: '📍', tag: 'regional'};
+          const marker = new AMap.Marker({
+            position: [c.lng, c.lat],
+            title: key.charAt(0).toUpperCase() + key.slice(1),
+            label: {content: tags.emoji, offset: new AMap.Pixel(-15, -15)},
+          });
+          marker.on('click', () => showMapDetail(key));
+          marker._cityKey = key;
+          map.add(marker);
+          mapMarkers.push(marker);
+        });
+      });
+
+      mapInitialized = true;
+    };
+    document.head.appendChild(script);
+  }
+
+  function plotMapMarkers() {
+    if (!mapInstance) return;
+    fetch('/api/map').then(r => r.json()).then(data => {
+      const cities = data.cities || {};
+
+      Object.keys(cities).forEach(key => {
+        const c = cities[key];
+        if (!c.lat || !c.lng) return;
+        const tags = CITY_TAGS[key] || {emoji: '📍', tag: 'regional'};
+        const markerColor = tags.tag === 'popular' ? '#e74c3c' : tags.tag === 'regional' ? '#f39c12' : '#2ecc71';
+
+        const icon = L.divIcon({
+          className: 'custom-marker ' + tags.tag,
+          html: tags.emoji,
+          iconSize: [32, 32],
+          iconAnchor: [16, 16],
+        });
+
+        const marker = L.marker([c.lat, c.lng], {icon})
+          .addTo(mapInstance)
+          .on('click', () => showMapDetail(key));
+
+        mapMarkers.push(marker);
+      });
+    });
+  }
+
+  function showMapDetail(cityKey) {
+    const detail = document.getElementById('map-city-detail');
+    const nameEl = document.getElementById('map-detail-name');
+    const descEl = document.getElementById('map-detail-desc');
+    const tagsEl = document.getElementById('map-detail-tags');
+
+    if (!detail || !nameEl) return;
+
+    const tags = CITY_TAGS[cityKey] || {emoji: '📍', tag: 'regional', desc: ''};
+    const cityName = cityKey.charAt(0).toUpperCase() + cityKey.slice(1);
+
+    nameEl.textContent = `${tags.emoji} ${cityName}`;
+    descEl.textContent = tags.desc;
+
+    // Tag badges
+    tagsEl.innerHTML = '';
+    const tagBadge = document.createElement('span');
+    tagBadge.className = 'tag';
+    tagBadge.textContent = tags.tag === 'popular' ? '⭐ Top Destination' : tags.tag === 'regional' ? '📍 Regional Hub' : '💎 Hidden Gem';
+    tagsEl.appendChild(tagBadge);
+
+    // Store for plan button
+    detail.dataset.city = cityKey;
+
+    detail.classList.remove('hidden');
+  }
+
+  function mapCloseDetail() {
+    const detail = document.getElementById('map-city-detail');
+    if (detail) detail.classList.add('hidden');
+  }
+
+  function mapOpenChat() {
+    const detail = document.getElementById('map-city-detail');
+    if (detail && detail.dataset.city) {
+      focusChat(detail.dataset.city);
+      navigate('chat');
+      mapCloseDetail();
+    }
+  }
+
   // ── Init ──
   function init() {
     // Theme toggle icon
@@ -960,7 +1159,7 @@ const VP = (function(){
 
     // Hash-based nav
     const hash = window.location.hash.slice(1);
-    if (hash && ['home','chat','trips','cities','tools'].includes(hash)) {
+    if (hash && ['home','chat','trips','cities','tools','map'].includes(hash)) {
       navigate(hash);
     }
 
@@ -1000,6 +1199,8 @@ const VP = (function(){
     loadTrip,
     shareTrip,
     deleteTrip,
+    mapCloseDetail,
+    mapOpenChat,
     init,
   };
 })();

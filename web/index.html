@@ -30,11 +30,12 @@
     <nav class="header-nav">
       <button class="nav-btn active" data-view="home" onclick="VP.navigate('home')">🏠 Home</button>
       <button class="nav-btn" data-view="chat" onclick="VP.navigate('chat')">💬 Chat</button>
+      <button class="nav-btn" data-view="map" onclick="VP.navigate('map')">🗺️ Map</button>
       <button class="nav-btn" data-view="trips" onclick="VP.navigate('trips')">📋 Trips</button>
       <button class="nav-btn" data-view="cities" onclick="VP.navigate('cities')">🏙 Cities</button>
     </nav>
     <div class="header-right">
-      <span id="version-badge" class="version-badge">v3.0.2</span>
+      <span id="version-badge" class="version-badge">v3.0.3</span>
       <button class="theme-toggle" onclick="VP.toggleTheme()" aria-label="Toggle theme">🌙</button>
     </div>
   </header>
@@ -103,6 +104,33 @@
       </div>
     </section>
 
+    <!-- ─── MAP ─── -->
+    <section id="view-map" class="view">
+      <div class="map-container">
+        <div id="map-header">
+          <h2>🗺️ Explore China</h2>
+          <p class="map-subtitle">Click a city marker to explore — hover for preview</p>
+        </div>
+        <div id="map-wrapper">
+          <div id="map-canvas"></div>
+          <div id="map-legend">
+            <span class="legend-item"><span class="legend-dot popular"></span> Top Destinations</span>
+            <span class="legend-item"><span class="legend-dot regional"></span> Regional Hubs</span>
+            <span class="legend-item"><span class="legend-dot hidden-gem"></span> Hidden Gems</span>
+          </div>
+        </div>
+        <div id="map-city-detail" class="map-city-detail hidden">
+          <button class="map-detail-close" onclick="VP.mapCloseDetail()">✕</button>
+          <div class="map-detail-content">
+            <h3 id="map-detail-name"></h3>
+            <p id="map-detail-desc"></p>
+            <div id="map-detail-tags"></div>
+            <button class="btn-primary" onclick="VP.mapOpenChat()">💬 Plan a trip here</button>
+          </div>
+        </div>
+      </div>
+    </section>
+
     <!-- ─── CITIES ─── -->
     <section id="view-cities" class="view">
       <div class="section">
@@ -127,7 +155,7 @@
 
   <!-- ═══ FOOTER ═══ -->
   <footer id="footer">
-    <p><span id="footer-version">VisePanda v3.0.2</span> · AI China Travel Planner · 🐼 · <span class="footer-clear" onclick="VP.clearChatHistory()" style="cursor:pointer;text-decoration:underline;opacity:.5">Clear chat</span></p>
+    <p><span id="footer-version">VisePanda v3.0.3</span> · AI China Travel Planner · 🐼 · <span class="footer-clear" onclick="VP.clearChatHistory()" style="cursor:pointer;text-decoration:underline;opacity:.5">Clear chat</span></p>
   </footer>
 </div>
 

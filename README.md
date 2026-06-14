@@ -1,46 +1,50 @@
-# VisePanda · v3.0.1
+# VisePanda · v3.0.3
 
-> AI China Travel Platform — 熊猫中国风 · AI 聊天规划 · 33 城知识库
+> AI China Travel Platform — Panda Chinese Style · AI Chat Planning · 36-City Knowledge Base
 
-## 产品一句话
+## Product in One Line
 
-**一个让想来中国的旅行者像跟本地朋友聊天一样，获得个性化行程规划的 AI 平台。** 基于 DeepSeek V4 Flash 大模型 + 33 城精选知识库，覆盖目的地推荐、Day-by-day 行程生成、本地美食/住宿/交通建议、旅行工具箱。
+**An AI platform that lets travelers to China get personalized trip plans by chatting like with a local friend.** Powered by DeepSeek V4 Flash + 36-city curated knowledge base — covers destination recommendations, day-by-day itineraries, local food/hotel/transport tips, and travel toolkit.
 
-**不是通用 AI 问答，是懂中国的 AI 旅行规划师。**
+**Not a generic AI assistant — a China-specialized AI travel planner.**
 
-## 最新版本 v3.0.1
+## Latest Version v3.0.3
 
-| 模块 | 状态 |
-|------|------|
-| 🐼 熊猫中国风前端（暗色/亮色双主题） | ⬜ 待建 |
-| 💬 SSE 流式聊天（DeepSeek V4 Flash） | ⬜ 待建 |
-| 📚 33 城知识库（景点/美食/酒店/贴士） | ✅ 已有资产 |
-| 🧰 旅行工具箱（打包/价格/签证/语言/紧急） | ✅ 已有资产 |
-| 🏗️ WSGI 零依赖后端（stdlib only） | ⬜ 待建 |
-| 🚀 Vercel 部署 | ⬜ 待建 |
+| Module | Status |
+|--------|--------|
+| 🐼 Panda Chinese Style Frontend (Dark/Light) | ✅ v3.0.1 |
+| 💬 SSE Streaming Chat (DeepSeek V4 Flash) | ✅ v3.0.1 |
+| 📚 36-City Knowledge Base (Attractions/Food/Hotels/Tips/Pricing) | ✅ v3.0.1 |
+| 🗺️ Map Tab (Full China Overview + City Markers) | ✅ v3.0.3 |
+| 🔍 FAQ Smart Matching (10 categories, query expansion) | ✅ v3.0.2 |
+| 🧰 Travel Toolkit (Packing/Price/Visa/Phrases/Emergency) | ✅ v3.0.1 |
+| 🏷️ Dynamic Version Badge | ✅ v3.0.2 |
+| 🏗️ WSGI Zero-Dependency Backend (stdlib only) | ✅ v3.0.1 |
+| 🚀 Vercel Deployment | ✅ v3.0.1 |
 
-## 技术栈
+## Tech Stack
 
-- **后端**：Python WSGI（纯 stdlib，零 pip 依赖）
-- **前端**：纯 HTML + CSS + JS（单页应用，熊猫 × 水墨中国风）
-- **LLM**：DeepSeek V4 Flash（OpenAI 兼容 SSE 流式）
-- **部署**：Vercel Serverless（@vercel/python）
-- **数据**：33 城知识库 JSON + 项目数据库 JSON
-- **设计参考**：popular-web-designs（54 套真实设计系统）
+- **Backend**: Python WSGI (pure stdlib, zero pip dependencies)
+- **Frontend**: Pure HTML + CSS + JS (SPA, Panda × Chinese design)
+- **LLM**: DeepSeek V4 Flash (OpenAI-compatible SSE streaming)
+- **Map**: AMap (Gaode) — Leaflet fallback when AMap key not configured
+- **Deployment**: Vercel Serverless (@vercel/python)
+- **Data**: 36-city knowledge base JSON
+- **Design**: Panda × Chinese aesthetic, dark/light dual themes
 
-## 前端功能
+## Frontend Tabs
 
-| Tab | 功能 |
-|-----|------|
-| 💬 Chat | SSE 流式 AI 聊天，生成个性化行程 |
-| 🏙 Cities | 33 城目的地卡片网格，按季节/特色推荐 |
-| 🧳 Tools | 打包清单 / 价格估算 / 签证指南 / 语言急救 / 紧急信息 |
-| 📋 Trips | 行程历史与持久化（Phase 2） |
+| Tab | Feature |
+|-----|---------|
+| 🏠 Home | City cards grid, hero section |
+| 💬 Chat | SSE streaming AI chat, personalized itineraries |
+| 🗺️ Map | Full China overview with 36 city markers |
+| 📋 Trips | Trip history, save/load/share |
+| 🏙 Cities | 36 city detail cards with food/hotel/tips data |
 
-## 快速启动（本地测试）
+## Quick Start (Local Test)
 
 ```bash
-# 本地 WSGI 测试
 python3 -c "
 from api.index import app
 from wsgiref.simple_server import make_server
@@ -49,70 +53,55 @@ print('→ http://127.0.0.1:8765')
 httpd.serve_forever()
 "
 
-# 测试 API
 curl http://127.0.0.1:8765/api/health
 ```
 
-## API 端点
+## API Endpoints
 
-| 端点 | 说明 |
-|------|------|
-| `GET /api/health` | 健康检查 |
-| `POST /api/chat` | AI 聊天（SSE 流式） |
-| `GET /api/cities` | 城市列表 |
-| `GET /api/cities/:city` | 城市详情（景点/美食/贴士） |
-| `GET /api/tools/:name` | 工具箱数据 |
-| `/*` | 前端静态文件 |
+| Endpoint | Description |
+|----------|-------------|
+| `GET /api/health` | Health check + version |
+| `POST /api/chat` | AI chat (SSE streaming) |
+| `GET /api/cities` | City list |
+| `GET /api/cities/:city` | City detail (attractions/food/tips) |
+| `GET /api/map` | All city map coordinates (36 cities) |
+| `GET /api/config` | Client config (AMap key, etc.) |
+| `GET /api/estimate` | Price estimates by city |
+| `POST /api/validate` | Trip plan validation |
+| `GET /api/tools/:name` | Tool data |
+| `/*` | Static frontend files |
 
-## 数据来源
-
-| 来源 | 类型 | 用途 |
-|------|------|------|
-| 33 城知识库 | 精选景点/美食/酒店/贴士 | 对话知识 |
-| 旅行工具箱 | 打包/价格/签证/语言/紧急 | 工具模块 |
-| DeepSeek V4 Flash | AI 大模型 | 对话+行程生成 |
-
-## 项目结构
+## Project Structure
 
 ```
 ├── api/
-│   └── index.py          Vercel WSGI handler（所有路由，~500 行）
+│   └── index.py          Vercel WSGI handler (all routes)
 ├── web/
-│   ├── index.html        前端入口（单页应用）
-│   ├── app.css           熊猫中国风样式
-│   └── app.js            前端逻辑（聊天/导航/主题）
+│   ├── index.html        SPA entry point
+│   ├── app.css           Panda Chinese style system
+│   └── app.js            Frontend logic (chat/nav/map/trips)
 ├── data/
-│   ├── cities.json       33 城知识库
-│   ├── food.json         美食数据
-│   ├── hotels.json       酒店数据
-│   ├── tips.json         本地人贴士
-│   ├── tools.json        工具箱（打包/价格/签证/语言/紧急）
-│   └── projects/         项目数据库（行程持久化）
+│   ├── cities.json       36-city knowledge base
+│   ├── food.json         Food data
+│   ├── hotels.json       Hotel data
+│   ├── tips.json         Local tips
+│   ├── faq.json          FAQ knowledge base (10 categories)
+│   └── tools.json        Travel toolkit
 ├── static/
-│   └── img/              城市图片素材
-├── vercel.json           部署配置
-├── PRD_PRODUCT_ANALYSIS.md 产品分析文档
-├── PLAN.md               迭代路线图
-└── DESIGN.md              设计系统参考
+│   └── img/              City images
+├── vercel.json           Deployment config
+├── CHANGELOG.md          Version history
+├── PLAN.md               Iteration roadmap
+├── PRD_PRODUCT_ANALYSIS.md  Product strategy
+├── README.md             This file
+└── HANDOFF.md            Project handoff doc
 ```
 
-## 迭代路线图
+## Version History
 
-详见 [PLAN.md](PLAN.md) — 3 个 Phase × 15 轮迭代：
+See [CHANGELOG.md](CHANGELOG.md) for full version history.
 
-- **Phase 1（Iter 1-6）**：骨架搭建 — WSGI/前端/聊天/知识库就位
-- **Phase 2（Iter 7-11）**：体验打磨 — 设计精修/响应式/多轮对话
-- **Phase 3（Iter 12-15）**：深度增强 — 行程持久化/地图/分享/智能工具
+## Iteration Roadmap
 
-## 与 v2.x 相比的变化
-
-| 维度 | v2.x | v3.0.1 |
-|------|------|--------|
-| 架构 | FastAPI + 8 个外部依赖 | WSGI + stdlib only |
-| LLM | GLM-5.1 | DeepSeek V4 Flash |
-| 前端 | 7 个 JS 文件 | 单页应用（1 个 JS） |
-| 后端 | 2,388 行单文件 | ~500 行 WSGI |
-| 数据库 | Supabase Postgres | 项目数据库 JSON |
-| 部署 | 易故障（依赖链长） | 零故障（零依赖） |
-| 设计 | 水墨暗色 | 熊猫 × 中国风双主题 |
+See [PLAN.md](PLAN.md) for detailed iteration plan.
 

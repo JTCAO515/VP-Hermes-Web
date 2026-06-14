@@ -1,5 +1,5 @@
 """
-VisePanda v3.0.2 — China Travel AI
+VisePanda v3.0.3 — China Travel AI
 WSGI handler. Zero pip dependencies (stdlib only).
 """
 from __future__ import annotations
@@ -582,7 +582,62 @@ MAP_DATA = {
         {"name": "Yangtze River Cableway", "name_cn": "长江索道", "lat": 29.5650, "lng": 106.5850, "type": "landmark"},
         {"name": "Ciqikou", "name_cn": "磁器口", "lat": 29.5750, "lng": 106.4550, "type": "culture"},
     ]},
+    "shenzhen": {"lat": 22.5431, "lng": 114.0579, "zoom": 11},
+    "nanjing": {"lat": 32.0603, "lng": 118.7969, "zoom": 11},
+    "suzhou": {"lat": 31.2990, "lng": 120.5853, "zoom": 11},
+    "wuhan": {"lat": 30.5928, "lng": 114.3055, "zoom": 11},
+    "changsha": {"lat": 28.2282, "lng": 112.9388, "zoom": 11},
+    "xiamen": {"lat": 24.4798, "lng": 118.0894, "zoom": 11},
+    "qingdao": {"lat": 36.0671, "lng": 120.3826, "zoom": 11},
+    "kunming": {"lat": 25.0389, "lng": 102.7183, "zoom": 11},
+    "dali": {"lat": 25.5916, "lng": 100.2299, "zoom": 11},
+    "lijiang": {"lat": 26.8721, "lng": 100.2299, "zoom": 11},
+    "lasa": {"lat": 29.6500, "lng": 91.1000, "zoom": 11},
+    "harbin": {"lat": 45.8038, "lng": 126.5350, "zoom": 11},
+    "sanya": {"lat": 18.2528, "lng": 109.5120, "zoom": 11},
+    "dunhuang": {"lat": 40.1421, "lng": 94.6620, "zoom": 10},
+    "luoyang": {"lat": 34.6181, "lng": 112.4540, "zoom": 11},
+    "huangshan": {"lat": 30.1330, "lng": 118.1750, "zoom": 11},
+    "jiuzhaigou": {"lat": 33.2585, "lng": 104.2380, "zoom": 10},
+    "lanzhou": {"lat": 36.0611, "lng": 103.8343, "zoom": 11},
+    "guiyang": {"lat": 26.6470, "lng": 106.6300, "zoom": 11},
+    "xining": {"lat": 36.6171, "lng": 101.7781, "zoom": 11},
+    "hohhot": {"lat": 40.8422, "lng": 111.7498, "zoom": 11},
+    "nanchang": {"lat": 28.6829, "lng": 115.8582, "zoom": 11},
+    "fuzhou": {"lat": 26.0745, "lng": 119.2965, "zoom": 11},
+    "macau": {"lat": 22.1987, "lng": 113.5439, "zoom": 12},
+    "taipei": {"lat": 25.0330, "lng": 121.5654, "zoom": 11},
+    "hainan": {"lat": 19.5664, "lng": 109.9497, "zoom": 9},
+    "tibet": {"lat": 29.6500, "lng": 91.1000, "zoom": 7},
+    "yunnan": {"lat": 25.0389, "lng": 102.7183, "zoom": 7},
+    "zhangjiajie": {"lat": 29.3470, "lng": 110.4780, "zoom": 11},
 }
+
+# ════════════════════════════════════════════════════════════
+# MAP & CONFIG API
+# ════════════════════════════════════════════════════════════
+
+def _handle_map(start_response):
+    """GET /api/map — return coordinates for all cities with map data."""
+    cities = _load_json(DATA_DIR / "cities.json") or {}
+    result = {}
+    for name in cities:
+        if name in MAP_DATA:
+            m = MAP_DATA[name]
+            result[name] = {"lat": m["lat"], "lng": m["lng"]}
+    return _json(start_response, {"cities": result})
+
+
+def _handle_config(start_response):
+    """GET /api/config — expose client-safe config (AMap key, etc.)."""
+    amap_key = os.environ.get("AMAP_KEY", "")
+    use_amap = bool(amap_key)
+    return _json(start_response, {
+        "amap_key": amap_key if use_amap else "",
+        "use_amap": use_amap,
+        "version": "3.0.3",
+    })
+
 
 ESTIMATE_DATA = {
     "beijing": {"budget_daily": "¥300-500", "mid_daily": "¥600-1000", "luxury_daily": "¥1500-3000", "flight_avg": "¥500-1500", "food_avg": "¥30-80/meal"},
@@ -657,8 +712,8 @@ def app(environ, start_response):
     if path == "/api/health" and method == "GET":
         return _json(start_response, {
             "status": "alive",
-            "version": "3.0.2",
-            "build": "2026-06-14",
+            "version": "3.0.3",
+            "build": "2026-06-15",
         })
 
     # ── Chat SSE ──
@@ -680,6 +735,14 @@ def app(environ, start_response):
     # ── Validate API ──
     if path == "/api/validate" and method == "POST":
         return _handle_validate(environ, start_response)
+
+    # ── Map API ──
+    if path == "/api/map" and method == "GET":
+        return _handle_map(start_response)
+
+    # ── Config API ──
+    if path == "/api/config" and method == "GET":
+        return _handle_config(start_response)
 
     # ── Static files (web/ + static/) ──
     result = _serve_static(start_response, path)
