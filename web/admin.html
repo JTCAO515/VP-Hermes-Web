@@ -1,445 +1,507 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" data-theme="dark">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>VisePanda Admin</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
 <style>
-  :root {
-    --bg: #F5F0E8;
-    --surface: #FFFFFF;
-    --gold: #C9A96E;
-    --gold-dark: #B89255;
-    --text: #2D2D2D;
-    --text-secondary: #6B6B5E;
-    --text-tertiary: #9C9A94;
-    --border: #E8E0D0;
-    --red: #D9534F;
-    --green: #5B7B5A;
-    --radius: 12px;
-  }
-  * { margin: 0; padding: 0; box-sizing: border-box; }
-  body {
-    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-    background: var(--bg);
-    color: var(--text);
-    min-height: 100vh;
-  }
+:root{--bg:#0e0b14;--bg-card:#1a1428;--bg-hover:rgba(255,255,255,.04);--text:#ebebed;--text-dim:#8a8a9a;--text-muted:#5a5a6a;--border:rgba(255,255,255,.1);--accent:#c9a96e;--accent-soft:rgba(201,169,110,.12);--red:#bc3a2c;--red-soft:rgba(188,58,44,.12);--green:#4a9c6d;--radius:8px;--shadow:0 4px 20px rgba(0,0,0,.3)}
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);font-size:14px;line-height:1.5}
+a{color:var(--accent);text-decoration:none}
+.hidden{display:none!important}
 
-  /* Login Screen */
-  .login-container {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    min-height: 100vh;
-    padding: 24px;
-  }
-  .login-card {
-    background: var(--surface);
-    border-radius: var(--radius);
-    padding: 40px 32px;
-    width: 100%;
-    max-width: 380px;
-    box-shadow: 0 2px 12px rgba(201,169,110,0.12);
-  }
-  .login-card h1 {
-    font-size: 24px;
-    margin-bottom: 4px;
-  }
-  .login-card p {
-    color: var(--text-secondary);
-    font-size: 14px;
-    margin-bottom: 24px;
-  }
-  .login-card input {
-    width: 100%;
-    padding: 12px 14px;
-    border: 1px solid var(--border);
-    border-radius: 8px;
-    font-size: 14px;
-    margin-bottom: 12px;
-    outline: none;
-    transition: border-color 0.2s;
-  }
-  .login-card input:focus {
-    border-color: var(--gold);
-  }
-  .login-card button {
-    width: 100%;
-    padding: 12px;
-    background: var(--gold);
-    color: #fff;
-    border: none;
-    border-radius: 8px;
-    font-size: 15px;
-    font-weight: 600;
-    cursor: pointer;
-    transition: background 0.2s;
-  }
-  .login-card button:hover { background: var(--gold-dark); }
-  .login-card button:disabled { opacity: 0.5; cursor: not-allowed; }
-  .login-error { color: var(--red); font-size: 13px; margin-bottom: 12px; display: none; }
+/* Layout */
+.app{display:flex;min-height:100vh}
+.sidebar{width:240px;background:var(--bg-card);border-right:1px solid var(--border);padding:24px 0;flex-shrink:0}
+.sidebar-brand{padding:0 20px;margin-bottom:32px;font-size:18px;font-weight:700}
+.sidebar-brand span{color:var(--accent)}
+.sidebar-nav{padding:0 12px}
+.sidebar-btn{display:flex;align-items:center;gap:10px;width:100%;padding:10px 14px;border:none;background:none;color:var(--text-dim);font-size:14px;cursor:pointer;border-radius:var(--radius);text-align:left}
+.sidebar-btn:hover{background:var(--bg-hover);color:var(--text)}
+.sidebar-btn.active{background:var(--accent-soft);color:var(--accent);font-weight:500}
+.main{flex:1;padding:32px;overflow-y:auto}
 
-  /* Dashboard */
-  .dashboard { display: none; }
-  .topbar {
-    background: var(--surface);
-    padding: 16px 24px;
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    border-bottom: 1px solid var(--border);
-  }
-  .topbar h2 { font-size: 18px; }
-  .topbar .admin-info { font-size: 13px; color: var(--text-secondary); }
-  .topbar .logout {
-    padding: 6px 16px;
-    border: 1px solid var(--border);
-    border-radius: 8px;
-    background: var(--surface);
-    cursor: pointer;
-    font-size: 13px;
-    color: var(--text-secondary);
-  }
-  .topbar .logout:hover { background: var(--bg); }
+/* Header bar */
+.topbar{display:flex;justify-content:space-between;align-items:center;margin-bottom:32px}
+.topbar h1{font-size:24px;font-weight:600}
+.topbar-right{display:flex;align-items:center;gap:12px}
+.badge{background:var(--accent-soft);color:var(--accent);padding:4px 10px;border-radius:20px;font-size:12px;font-weight:500}
+.logout-btn{background:none;border:1px solid var(--border);color:var(--text-dim);padding:6px 14px;border-radius:var(--radius);cursor:pointer;font-size:13px}
+.logout-btn:hover{color:var(--red);border-color:var(--red)}
 
-  .content {
-    max-width: 960px;
-    margin: 0 auto;
-    padding: 24px;
-  }
-  .stats-row {
-    display: flex;
-    gap: 16px;
-    margin-bottom: 24px;
-  }
-  .stat-card {
-    background: var(--surface);
-    border-radius: var(--radius);
-    padding: 20px;
-    flex: 1;
-    box-shadow: 0 1px 6px rgba(201,169,110,0.08);
-  }
-  .stat-card .num {
-    font-size: 28px;
-    font-weight: 700;
-    color: var(--gold-dark);
-  }
-  .stat-card .label {
-    font-size: 13px;
-    color: var(--text-secondary);
-    margin-top: 4px;
-  }
+/* Cards */
+.card{background:var(--bg-card);border:1px solid var(--border);border-radius:12px;padding:20px;margin-bottom:16px}
+.card-row{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:16px;margin-bottom:24px}
+.stat-card{background:var(--bg-card);border:1px solid var(--border);border-radius:12px;padding:20px}
+.stat-card .num{font-size:28px;font-weight:700;margin-top:4px}
+.stat-card .label{font-size:13px;color:var(--text-dim)}
 
-  .user-table {
-    background: var(--surface);
-    border-radius: var(--radius);
-    overflow: hidden;
-    box-shadow: 0 1px 6px rgba(201,169,110,0.08);
-  }
-  .user-table table {
-    width: 100%;
-    border-collapse: collapse;
-  }
-  .user-table th {
-    text-align: left;
-    padding: 14px 16px;
-    font-size: 12px;
-    font-weight: 600;
-    color: var(--text-tertiary);
-    text-transform: uppercase;
-    letter-spacing: 0.5px;
-    border-bottom: 1px solid var(--border);
-    background: var(--bg);
-  }
-  .user-table td {
-    padding: 14px 16px;
-    font-size: 14px;
-    border-bottom: 1px solid var(--border);
-  }
-  .user-table tr:last-child td { border-bottom: none; }
-  .user-table tr:hover td { background: #FAF7F3; }
-  .role-badge {
-    display: inline-block;
-    padding: 2px 10px;
-    border-radius: 999px;
-    font-size: 12px;
-    font-weight: 500;
-  }
-  .role-admin { background: #F0E8D8; color: var(--gold-dark); }
-  .role-user { background: #E8F0E8; color: var(--green); }
-  .btn-delete {
-    padding: 4px 12px;
-    border: 1px solid var(--red);
-    border-radius: 6px;
-    background: transparent;
-    color: var(--red);
-    font-size: 12px;
-    cursor: pointer;
-    transition: all 0.2s;
-  }
-  .btn-delete:hover { background: var(--red); color: #fff; }
-  .btn-delete:disabled { opacity: 0.3; cursor: not-allowed; }
+/* Table */
+table{width:100%;border-collapse:collapse}
+th{text-align:left;padding:10px 12px;font-size:12px;color:var(--text-dim);font-weight:500;border-bottom:1px solid var(--border);white-space:nowrap}
+td{padding:10px 12px;border-bottom:1px solid rgba(255,255,255,.04);font-size:13px}
+tr:hover{background:var(--bg-hover)}
+.role-badge{display:inline-block;padding:2px 8px;border-radius:12px;font-size:11px;font-weight:500}
+.role-badge.admin{background:var(--accent-soft);color:var(--accent)}
+.role-badge.ops{background:rgba(74,156,109,.15);color:var(--green)}
+.role-badge.user{background:rgba(125,211,252,.1);color:#7dd3fc}
+.status-dot{display:inline-block;width:8px;height:8px;border-radius:50%;margin-right:6px}
+.status-dot.active{background:var(--green)}
+.status-dot.disabled{background:var(--red)}
+.status-dot.pending{background:#f0ad4e}
 
-  .empty-state {
-    text-align: center;
-    padding: 48px;
-    color: var(--text-tertiary);
-  }
+/* Buttons */
+.btn-sm{padding:4px 10px;border-radius:var(--radius);border:none;cursor:pointer;font-size:12px}
+.btn-primary{background:var(--accent);color:#fff}
+.btn-danger{background:var(--red-soft);color:var(--red)}
+.btn-ghost{background:none;border:1px solid var(--border);color:var(--text-dim)}:hover.btn-ghost{color:var(--text)}
+.btn-ghost:hover{color:var(--text)}
+.btn-sm:disabled{opacity:.5;cursor:not-allowed}
 
-  .toast {
-    position: fixed;
-    bottom: 24px;
-    right: 24px;
-    padding: 12px 20px;
-    border-radius: 8px;
-    font-size: 14px;
-    color: #fff;
-    opacity: 0;
-    transform: translateY(20px);
-    transition: all 0.3s;
-    z-index: 100;
-  }
-  .toast.show { opacity: 1; transform: translateY(0); }
-  .toast.success { background: var(--green); }
-  .toast.error { background: var(--red); }
+/* Search / Filter bar */
+.toolbar{display:flex;gap:8px;margin-bottom:16px;flex-wrap:wrap}
+.toolbar input{background:var(--bg);border:1px solid var(--border);border-radius:var(--radius);padding:8px 12px;color:var(--text);font-size:13px;min-width:200px}
+.toolbar input:focus{border-color:var(--accent);outline:none}
+.toolbar select{background:var(--bg);border:1px solid var(--border);border-radius:var(--radius);padding:8px;color:var(--text);font-size:13px}
+
+/* Pagination */
+.pagination{display:flex;align-items:center;justify-content:center;gap:8px;margin-top:16px;font-size:13px;color:var(--text-dim)}
+.pagination button{background:none;border:1px solid var(--border);padding:4px 10px;border-radius:var(--radius);cursor:pointer;color:var(--text);font-size:12px}
+.pagination button:disabled{opacity:.4;cursor:not-allowed}
+
+/* Login form (within admin) */
+.login-container{display:flex;align-items:center;justify-content:center;min-height:100vh;flex-direction:column;gap:16px}
+.login-box{background:var(--bg-card);border:1px solid var(--border);border-radius:16px;padding:32px;width:360px;max-width:90%}
+.login-box h2{margin-bottom:4px}
+.login-box p{margin-bottom:20px;color:var(--text-dim);font-size:13px}
+.login-box input{width:100%;padding:10px;border:1px solid var(--border);border-radius:var(--radius);background:var(--bg);color:var(--text);font-size:14px;margin-bottom:12px}
+.login-box input:focus{border-color:var(--accent);outline:none}
+.login-box button{width:100%;padding:10px;border:none;border-radius:var(--radius);background:var(--accent);color:#fff;font-size:14px;font-weight:600;cursor:pointer}
+.login-box button:hover{opacity:.9}
+.login-box .error{background:var(--red-soft);color:var(--red);padding:8px;border-radius:var(--radius);font-size:12px;margin-bottom:12px}
+
+/* Detail panel */
+.detail-header{display:flex;align-items:center;gap:12px;margin-bottom:20px}
+.detail-header button{background:none;border:none;color:var(--accent);cursor:pointer;font-size:14px}
+.detail-field{margin-bottom:12px}
+.detail-field label{font-size:12px;color:var(--text-dim);display:block;margin-bottom:2px}
+.detail-field .value{font-size:14px}
+.detail-actions{display:flex;gap:8px;margin-top:16px;flex-wrap:wrap}
+.detail-actions select{background:var(--bg);border:1px solid var(--border);border-radius:var(--radius);padding:6px 10px;color:var(--text);font-size:13px}
+
+/* Chat message view */
+.msg-viewer{max-height:400px;overflow-y:auto;padding:12px;background:var(--bg);border-radius:var(--radius)}
+.msg-item{padding:8px 0;border-bottom:1px solid rgba(255,255,255,.04)}
+.msg-item:last-child{border:none}
+.msg-role{font-size:11px;color:var(--text-dim);margin-bottom:2px;font-weight:500}
+.msg-role.user{color:#7dd3fc}
+.msg-role.assistant{color:var(--accent)}
+.msg-content{font-size:13px;line-height:1.6;white-space:pre-wrap;word-break:break-word}
+.msg-time{font-size:11px;color:var(--text-muted);margin-top:2px}
+
+/* Clickable row */
+.clickable{cursor:pointer}
+.clickable:hover{background:var(--bg-hover)}
+
+/* Loading */
+.loading{text-align:center;padding:40px;color:var(--text-dim)}
 </style>
 </head>
 <body>
-  <!-- Login -->
-  <div class="login-container" id="loginView">
-    <div class="login-card">
-      <h1>VisePanda Admin</h1>
-      <p>Sign in with your admin account</p>
-      <div class="login-error" id="loginError"></div>
-      <input type="email" id="emailInput" placeholder="Email" autocomplete="email" autocapitalize="off">
-      <input type="password" id="passwordInput" placeholder="Password" autocomplete="current-password">
-      <button id="loginBtn" onclick="handleLogin()">Sign In</button>
+
+<!-- Admin Login -->
+<div id="login-view" class="login-container">
+  <div class="login-box">
+    <h2>VisePanda Admin</h2>
+    <p>Sign in with your admin account</p>
+    <div id="admin-error" class="error hidden"></div>
+    <input type="email" id="admin-login-email" placeholder="Email" autocomplete="email">
+    <input type="password" id="admin-login-password" placeholder="Password" autocomplete="current-password">
+    <button onclick="adminLogin()">Sign In</button>
+    <p style="margin-top:12px;font-size:12px;color:var(--text-dim);text-align:center">
+      Need admin access? <a href="/" target="_blank">Go to VisePanda</a>
+    </p>
+  </div>
+</div>
+
+<!-- Main App -->
+<div id="app-view" class="app hidden">
+  <div class="sidebar">
+    <div class="sidebar-brand">🐼 <span>VisePanda</span> Admin</div>
+    <nav class="sidebar-nav">
+      <button class="sidebar-btn active" data-view="dashboard" onclick="switchView('dashboard')">📊 Dashboard</button>
+      <button class="sidebar-btn" data-view="users" onclick="switchView('users')">👥 Users</button>
+      <button class="sidebar-btn" data-view="chats" onclick="switchView('chats')">💬 Chat Logs</button>
+    </nav>
+    <div style="position:absolute;bottom:24px;left:0;right:0;padding:0 12px">
+      <button class="sidebar-btn" onclick="adminLogout()" style="color:var(--red)">🚪 Sign Out</button>
     </div>
   </div>
 
-  <!-- Dashboard -->
-  <div class="dashboard" id="dashboardView">
+  <div class="main">
     <div class="topbar">
-      <div>
-        <h2>VisePanda Admin</h2>
-        <div class="admin-info" id="adminInfo"></div>
+      <h1 id="page-title">Dashboard</h1>
+      <div class="topbar-right">
+        <span id="admin-email" class="badge">admin@...</span>
       </div>
-      <button class="logout" onclick="handleLogout()">Logout</button>
     </div>
 
-    <div class="content">
-      <div class="stats-row">
-        <div class="stat-card">
-          <div class="num" id="totalUsers">0</div>
-          <div class="label">Total Users</div>
-        </div>
-        <div class="stat-card">
-          <div class="num" id="adminUsers">0</div>
-          <div class="label">Admins</div>
-        </div>
-        <div class="stat-card">
-          <div class="num" id="regularUsers">0</div>
-          <div class="label">Regular Users</div>
-        </div>
+    <!-- Dashboard -->
+    <div id="view-dashboard" class="view">
+      <div class="card-row" id="stats-row">
+        <div class="stat-card"><div class="label">Total Users</div><div class="num" id="stat-users">—</div></div>
+        <div class="stat-card"><div class="label">Active</div><div class="num" id="stat-active">—</div></div>
+        <div class="stat-card"><div class="label">Conversations</div><div class="num" id="stat-convs">—</div></div>
+        <div class="stat-card"><div class="label">Today Active</div><div class="num" id="stat-today">—</div></div>
       </div>
+      <div class="card">
+        <h3 style="margin-bottom:12px;font-size:15px">Users by Role</h3>
+        <div id="role-breakdown">Loading...</div>
+      </div>
+    </div>
 
-      <div class="user-table">
-        <table>
-          <thead>
-            <tr>
-              <th>Email</th>
-              <th>Role</th>
-              <th>Registered</th>
-              <th>Actions</th>
-            </tr>
-          </thead>
-          <tbody id="userTableBody">
-            <tr><td colspan="4" class="empty-state">Loading users...</td></tr>
-          </tbody>
+    <!-- Users -->
+    <div id="view-users" class="view hidden">
+      <div class="toolbar">
+        <input type="text" id="user-search" placeholder="Search by email..." oninput="debounceSearch()">
+        <select id="role-filter" onchange="loadUsers()">
+          <option value="">All Roles</option>
+          <option value="admin">Admin</option>
+          <option value="ops">Ops</option>
+          <option value="user">User</option>
+        </select>
+        <select id="status-filter" onchange="loadUsers()">
+          <option value="">All Status</option>
+          <option value="active">Active</option>
+          <option value="disabled">Disabled</option>
+          <option value="pending">Pending</option>
+        </select>
+      </div>
+      <div class="card" style="padding:0;overflow-x:auto">
+        <table id="users-table">
+          <thead><tr>
+            <th>Email</th><th>Name</th><th>Role</th><th>Status</th><th>Created</th><th style="width:80px"></th>
+          </tr></thead>
+          <tbody id="users-body"><tr><td colspan="6" class="loading">Loading...</td></tr></tbody>
+        </table>
+      </div>
+      <div class="pagination" id="user-pagination"></div>
+    </div>
+
+    <!-- Chats -->
+    <div id="view-chats" class="view hidden">
+      <div class="toolbar">
+        <input type="text" id="chat-search" placeholder="Search messages or user email..." oninput="debounceChatSearch()">
+      </div>
+      <div class="card" style="padding:0;overflow-x:auto">
+        <table id="chats-table">
+          <thead><tr><th>User</th><th>Title</th><th>Messages</th><th>Created</th><th style="width:80px"></th></tr></thead>
+          <tbody id="chats-body"><tr><td colspan="5" class="loading">Loading...</td></tr></tbody>
         </table>
       </div>
     </div>
-  </div>
 
-  <!-- Toast -->
-  <div class="toast" id="toast"></div>
+    <!-- User Detail (shown instead of users list) -->
+    <div id="view-user-detail" class="view hidden">
+      <div class="detail-header">
+        <button onclick="switchView('users')">← Back to Users</button>
+      </div>
+      <div class="card" id="user-detail-card">
+        <div class="loading">Loading...</div>
+      </div>
+    </div>
+
+    <!-- Chat Detail (shown instead of chats list) -->
+    <div id="view-chat-detail" class="view hidden">
+      <div class="detail-header">
+        <button onclick="switchView('chats')">← Back to Chats</button>
+      </div>
+      <div class="card" id="chat-detail-card">
+        <div class="loading">Loading...</div>
+      </div>
+    </div>
+  </div>
+</div>
 
 <script>
-const API_BASE = window.location.origin;
-let authToken = localStorage.getItem('vp_admin_token') || '';
-let currentUser = null;
+// ═══════════════════════════════════════════
+// STATE
+// ═══════════════════════════════════════════
+var _token = localStorage.getItem('vp_admin_token') || localStorage.getItem('vp_token');
+var _user = null;
+var _searchTimer = null;
+var _userPage = 1;
 
-// Auto-login if token exists
-document.addEventListener('DOMContentLoaded', () => {
-  if (authToken) {
-    verifyAndLoad();
-  }
-});
-
-async function verifyAndLoad() {
-  try {
-    const u = await api('/api/auth/me');
-    if (u && u.user && u.user.role === 'admin') {
-      currentUser = u.user;
-      showDashboard();
-      loadUsers();
-      return;
-    }
-  } catch(e) {}
-  // Token invalid
-  authToken = '';
-  localStorage.removeItem('vp_admin_token');
-  showLogin();
+// ═══════════════════════════════════════════
+// HELPERS
+// ═══════════════════════════════════════════
+function api(path, opts) {
+  opts = opts || {};
+  var headers = {'Content-Type': 'application/json'};
+  if (_token) headers['Authorization'] = 'Bearer ' + _token;
+  return fetch(path, {headers: headers, method: opts.method || 'GET', body: opts.body || null})
+    .then(function(r){ return r.json().then(function(d){ d._status = r.status; return d; }); });
 }
 
-async function handleLogin() {
-  const email = document.getElementById('emailInput').value.trim();
-  const password = document.getElementById('passwordInput').value;
-  const btn = document.getElementById('loginBtn');
-  const errEl = document.getElementById('loginError');
+function esc(s) { return (s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
 
-  if (!email || !password) {
-    errEl.textContent = 'Email and password required';
-    errEl.style.display = 'block';
-    return;
-  }
-
-  btn.disabled = true;
-  btn.textContent = 'Signing in...';
-  errEl.style.display = 'none';
-
-  try {
-    const res = await fetch(`${API_BASE}/api/auth/login`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ email, password }),
-    });
-    const data = await res.json();
-
-    if (!res.ok) {
-      errEl.textContent = data.error || 'Login failed';
-      errEl.style.display = 'block';
+// ═══════════════════════════════════════════
+// AUTH
+// ═══════════════════════════════════════════
+function checkAuth() {
+  if (!_token) { showLogin(); return; }
+  api('/api/auth/me').then(function(d){
+    if (d._status >= 400 || !d.user) { showLogin(); return; }
+    _user = d.user;
+    if (_user.role !== 'admin' && _user.role !== 'ops') {
+      document.getElementById('app-view').innerHTML = '<div style="text-align:center;padding:60px;color:var(--red)"><h2>Access Denied</h2><p style="color:var(--text-dim);margin-top:8px">You need admin or ops role.</p><a href="/" style="display:inline-block;margin-top:16px">← Back to VisePanda</a></div>';
+      document.getElementById('app-view').classList.remove('hidden');
+      document.getElementById('login-view').classList.add('hidden');
       return;
     }
-
-    if (data.user.role !== 'admin') {
-      errEl.textContent = 'Admin access required';
-      errEl.style.display = 'block';
-      return;
-    }
-
-    authToken = data.token;
-    currentUser = data.user;
-    localStorage.setItem('vp_admin_token', authToken);
-    showDashboard();
-    loadUsers();
-  } catch(e) {
-    errEl.textContent = 'Network error';
-    errEl.style.display = 'block';
-  } finally {
-    btn.disabled = false;
-    btn.textContent = 'Sign In';
-  }
-}
-
-function handleLogout() {
-  authToken = '';
-  currentUser = null;
-  localStorage.removeItem('vp_admin_token');
-  showLogin();
+    document.getElementById('admin-email').textContent = _user.email;
+    document.getElementById('login-view').classList.add('hidden');
+    document.getElementById('app-view').classList.remove('hidden');
+    loadDashboard();
+  });
 }
 
 function showLogin() {
-  document.getElementById('loginView').style.display = 'flex';
-  document.getElementById('dashboardView').style.display = 'none';
+  document.getElementById('login-view').classList.remove('hidden');
+  document.getElementById('app-view').classList.add('hidden');
 }
 
-function showDashboard() {
-  document.getElementById('loginView').style.display = 'none';
-  document.getElementById('dashboardView').style.display = 'block';
-  document.getElementById('adminInfo').textContent = `Logged in as ${currentUser.email}`;
-}
-
-async function loadUsers() {
-  const tbody = document.getElementById('userTableBody');
-  tbody.innerHTML = '<tr><td colspan="4" class="empty-state">Loading users...</td></tr>';
-
-  try {
-    const data = await api('/api/admin/users');
-    const users = data.users || [];
-
-    document.getElementById('totalUsers').textContent = users.length;
-    document.getElementById('adminUsers').textContent = users.filter(u => u.role === 'admin').length;
-    document.getElementById('regularUsers').textContent = users.filter(u => u.role === 'user').length;
-
-    if (users.length === 0) {
-      tbody.innerHTML = '<tr><td colspan="4" class="empty-state">No users found</td></tr>';
+function adminLogin() {
+  var email = document.getElementById('admin-login-email').value.trim();
+  var pw = document.getElementById('admin-login-password').value;
+  var errEl = document.getElementById('admin-error');
+  errEl.classList.add('hidden');
+  if (!email || !pw) { errEl.textContent = 'Email and password required'; errEl.classList.remove('hidden'); return; }
+  api('/api/auth/login', {method:'POST', body:JSON.stringify({email:email, password:pw})}).then(function(d){
+    if (d._status >= 400) { errEl.textContent = d.error || 'Login failed'; errEl.classList.remove('hidden'); return; }
+    _token = d.token;
+    _user = d.user;
+    localStorage.setItem('vp_admin_token', _token);
+    if (_user.role !== 'admin' && _user.role !== 'ops') {
+      errEl.textContent = 'Access denied: admin or ops role required';
+      errEl.classList.remove('hidden');
       return;
     }
-
-    tbody.innerHTML = users.map(u => `
-      <tr>
-        <td>${escHtml(u.email)}</td>
-        <td><span class="role-badge role-${u.role}">${u.role}</span></td>
-        <td>${formatDate(u.created_at)}</td>
-        <td>
-          ${u.id !== currentUser.id
-            ? `<button class="btn-delete" onclick="deleteUser('${u.id}')">Delete</button>`
-            : '<span style="color:var(--text-tertiary);font-size:12px">You</span>'}
-        </td>
-      </tr>
-    `).join('');
-  } catch(e) {
-    tbody.innerHTML = '<tr><td colspan="4" class="empty-state" style="color:var(--red)">Failed to load users</td></tr>';
-  }
-}
-
-async function deleteUser(userId) {
-  if (!confirm('Are you sure you want to delete this user?')) return;
-
-  try {
-    const data = await api(`/api/admin/users/${userId}`, 'DELETE');
-    showToast('User deleted', 'success');
-    loadUsers();
-  } catch(e) {
-    showToast(e.message || 'Failed to delete user', 'error');
-  }
-}
-
-async function api(path, method = 'GET') {
-  const res = await fetch(`${API_BASE}${path}`, {
-    method,
-    headers: {
-      'Authorization': `Bearer ${authToken}`,
-      'Content-Type': 'application/json',
-    },
+    checkAuth();
   });
-  const data = await res.json();
-  if (!res.ok) throw new Error(data.error || 'Request failed');
-  return data;
 }
 
-function formatDate(iso) {
-  if (!iso) return '-';
-  try {
-    const d = new Date(iso);
-    return d.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
-  } catch { return iso; }
+function adminLogout() {
+  _token = null; _user = null;
+  localStorage.removeItem('vp_admin_token');
+  localStorage.removeItem('vp_token');
+  location.reload();
 }
 
-function escHtml(s) {
-  const div = document.createElement('div');
-  div.textContent = s;
-  return div.innerHTML;
+// ═══════════════════════════════════════════
+// NAVIGATION
+// ═══════════════════════════════════════════
+var _currentView = 'dashboard';
+
+function switchView(name) {
+  _currentView = name;
+  document.querySelectorAll('.sidebar-btn[data-view]').forEach(function(b){ b.classList.toggle('active', b.getAttribute('data-view')===name); });
+  document.querySelectorAll('.main .view').forEach(function(v){ v.classList.add('hidden'); });
+  var titles = {dashboard:'Dashboard', users:'Users', chats:'Chat Logs'};
+  document.getElementById('page-title').textContent = titles[name] || 'Dashboard';
+  document.getElementById('view-' + name).classList.remove('hidden');
+  if (name === 'dashboard') loadDashboard();
+  if (name === 'users') loadUsers();
+  if (name === 'chats') loadChats();
 }
 
-function showToast(msg, type = 'success') {
-  const el = document.getElementById('toast');
-  el.textContent = msg;
-  el.className = `toast ${type} show`;
-  setTimeout(() => el.classList.remove('show'), 3000);
+// ═══════════════════════════════════════════
+// DASHBOARD
+// ═══════════════════════════════════════════
+function loadDashboard() {
+  api('/api/admin/stats').then(function(d){
+    if (d._status >= 400) { return; }
+    document.getElementById('stat-users').textContent = d.total_users || 0;
+    document.getElementById('stat-active').textContent = (d.users_by_status && d.users_by_status.active) || 0;
+    document.getElementById('stat-convs').textContent = d.total_conversations || 0;
+    document.getElementById('stat-today').textContent = d.today_active_users || 0;
+    var rb = document.getElementById('role-breakdown');
+    if (d.users_by_role) {
+      rb.innerHTML = Object.keys(d.users_by_role).map(function(r){ return '<span class="role-badge ' + r + '">' + r + ': ' + d.users_by_role[r] + '</span> '; }).join('');
+    }
+  });
 }
+
+// ═══════════════════════════════════════════
+// USERS
+// ═══════════════════════════════════════════
+function loadUsers() {
+  var search = encodeURIComponent(document.getElementById('user-search').value.trim());
+  var role = document.getElementById('role-filter').value;
+  var status = document.getElementById('status-filter').value;
+  var url = '/api/admin/users?page=' + _userPage + '&limit=50';
+  if (search) url += '&search=' + search;
+  if (role) url += '&role=' + role;
+  if (status) url += '&status=' + status;
+
+  api(url).then(function(d){
+    var tbody = document.getElementById('users-body');
+    if (d._status >= 400) { tbody.innerHTML = '<tr><td colspan="6" style="color:var(--red);padding:20px">Failed to load users</td></tr>'; return; }
+    var users = d.users || [];
+    if (users.length === 0) { tbody.innerHTML = '<tr><td colspan="6" class="loading">No users found</td></tr>'; return; }
+    tbody.innerHTML = users.map(function(u){
+      var name = u.display_name || '';
+      return '<tr class="clickable" onclick="showUserDetail(\'' + u.id + '\')">'
+        + '<td>' + esc(u.email) + '</td><td>' + esc(name) + '</td>'
+        + '<td><span class="role-badge ' + esc(u.role) + '">' + esc(u.role) + '</span></td>'
+        + '<td><span class="status-dot ' + esc(u.status || 'active') + '"></span>' + esc(u.status || 'active') + '</td>'
+        + '<td style="font-size:12px;color:var(--text-dim)">' + (u.created_at || '').split('T')[0] + '</td>'
+        + '<td><button class="btn-sm btn-primary" onclick="event.stopPropagation();showUserDetail(\'' + u.id + '\')">View</button></td>'
+        + '</tr>';
+    }).join('');
+
+    var pg = document.getElementById('user-pagination');
+    if (d.total > 50) {
+      var totalPages = Math.ceil(d.total / 50);
+      pg.innerHTML = '<button onclick="userPage(-1)"' + (_userPage<=1?' disabled':'') + '>←</button>'
+        + '<span>Page ' + _userPage + ' of ' + totalPages + '</span>'
+        + '<button onclick="userPage(1)"' + (_userPage>=totalPages?' disabled':'') + '>→</button>';
+    } else { pg.innerHTML = ''; }
+  });
+}
+
+function userPage(dir) { _userPage += dir; loadUsers(); }
+
+function showUserDetail(userId) {
+  api('/api/admin/users/' + userId).then(function(d){
+    if (d._status >= 400) { return; }
+    var u = d.user || {};
+    var card = document.getElementById('user-detail-card');
+    card.innerHTML = '<table><tr><th>Field</th><th>Value</th></tr>'
+      + '<tr><td>Email</td><td>' + esc(u.email) + '</td></tr>'
+      + '<tr><td>Display Name</td><td>' + esc(u.display_name || '—') + '</td></tr>'
+      + '<tr><td>Role</td><td><select id="edit-role" onchange="saveUserEdit(\'' + userId + '\')">'
+        + ['user','ops','admin'].map(function(r){ return '<option value="' + r + '"' + (u.role===r?' selected':'') + '>' + r + '</option>'; }).join('')
+        + '</select></td></tr>'
+      + '<tr><td>Status</td><td><select id="edit-status" onchange="saveUserEdit(\'' + userId + '\')">'
+        + ['active','disabled','pending'].map(function(s){ return '<option value="' + s + '"' + (u.status===s?' selected':'') + '>' + s + '</option>'; }).join('')
+        + '</select></td></tr>'
+      + '<tr><td>Created</td><td>' + (u.created_at || '—') + '</td></tr>'
+      + '<tr><td>Updated</td><td>' + (u.updated_at || '—') + '</td></tr>'
+      + '</table>'
+      + '<h3 style="margin:16px 0 8px;font-size:14px">💬 Conversations</h3>'
+      + '<div id="user-convs">Loading...</div>';
+
+    switchView('user-detail');
+    document.getElementById('page-title').textContent = u.email;
+
+    // Load conversations
+    api('/api/admin/users/' + userId + '/chat').then(function(cd){
+      var el = document.getElementById('user-convs');
+      var convs = cd.conversations || [];
+      if (convs.length === 0) { el.innerHTML = '<p style="color:var(--text-dim)">No conversations</p>'; return; }
+      el.innerHTML = convs.map(function(c){
+        return '<div class="clickable" style="padding:8px 12px;border:1px solid var(--border);border-radius:var(--radius);margin-bottom:4px" onclick="showChatDetail(\'' + c.id + '\')">'
+          + '<div style="font-size:13px">' + esc(c.title || 'Chat') + '</div>'
+          + '<div style="font-size:11px;color:var(--text-dim);margin-top:2px">' + (c.message_count||0) + ' msgs · ' + (c.created_at||'').split('T')[0] + '</div>'
+          + '</div>';
+      }).join('');
+    });
+  });
+}
+
+function saveUserEdit(userId) {
+  var role = document.getElementById('edit-role').value;
+  var status = document.getElementById('edit-status').value;
+  api('/api/admin/users/' + userId, {method:'PATCH', body:JSON.stringify({role:role, status:status})}).then(function(d){
+    if (d._status < 400 && d.message) { /* saved */ }
+  });
+}
+
+// ═══════════════════════════════════════════
+// CHATS
+// ═══════════════════════════════════════════
+function loadChats() {
+  var search = document.getElementById('chat-search').value.trim();
+  // Load all conversations (admin API)
+  api('/api/admin/users').then(function(ud){
+    var users = ud.users || [];
+    var allPromises = users.map(function(u){ return api('/api/admin/users/' + u.id + '/chat'); });
+    Promise.all(allPromises).then(function(results){
+      var allConvs = [];
+      results.forEach(function(r, i){
+        var convs = r.conversations || [];
+        convs.forEach(function(c){ c.user_email = (users[i] && users[i].email) || '?'; allConvs.push(c); });
+      });
+      // Sort by updated_at desc
+      allConvs.sort(function(a,b){ return (b.updated_at||'').localeCompare(a.updated_at||''); });
+      // Filter by search
+      if (search) {
+        var s = search.toLowerCase();
+        allConvs = allConvs.filter(function(c){ return (c.user_email||'').toLowerCase().indexOf(s) >= 0 || (c.title||'').toLowerCase().indexOf(s) >= 0; });
+      }
+      var tbody = document.getElementById('chats-body');
+      if (allConvs.length === 0) { tbody.innerHTML = '<tr><td colspan="5" class="loading">No conversations found</td></tr>'; return; }
+      tbody.innerHTML = allConvs.slice(0, 100).map(function(c){
+        return '<tr class="clickable" onclick="showChatDetail(\'' + c.id + '\')">'
+          + '<td>' + esc(c.user_email) + '</td>'
+          + '<td>' + esc(c.title || 'Chat') + '</td>'
+          + '<td>' + (c.message_count || 0) + '</td>'
+          + '<td style="font-size:12px;color:var(--text-dim)">' + (c.created_at||'').split('T')[0] + '</td>'
+          + '<td><button class="btn-sm btn-ghost" onclick="event.stopPropagation();showChatDetail(\'' + c.id + '\')">View</button></td>'
+          + '</tr>';
+      }).join('');
+    });
+  });
+}
+
+function showChatDetail(convId) {
+  api('/api/admin/chat/' + convId).then(function(d){
+    if (d._status >= 400) { return; }
+    var conv = d.conversation || {};
+    var msgs = d.messages || [];
+    var card = document.getElementById('chat-detail-card');
+    card.innerHTML = '<div style="margin-bottom:12px">'
+      + '<strong>' + esc(conv.title || 'Chat') + '</strong>'
+      + '<span style="color:var(--text-dim);margin-left:12px;font-size:12px">' + esc(conv.user_email || '') + '</span>'
+      + '</div>'
+      + '<div class="msg-viewer">'
+      + msgs.map(function(m){
+        var roleClass = m.role === 'user' ? 'user' : 'assistant';
+        return '<div class="msg-item">'
+          + '<div class="msg-role ' + roleClass + '">' + esc(m.role) + '</div>'
+          + '<div class="msg-content">' + esc(m.content) + '</div>'
+          + '<div class="msg-time">' + (m.created_at || '') + '</div>'
+          + '</div>';
+      }).join('')
+      + '</div>'
+      + '<p style="margin-top:8px;font-size:12px;color:var(--text-dim)">' + msgs.length + ' messages</p>';
+
+    switchView('chat-detail');
+    document.getElementById('page-title').textContent = conv.title || 'Chat';
+  });
+}
+
+// ═══════════════════════════════════════════
+// SEARCH DEBOUNCE
+// ═══════════════════════════════════════════
+function debounceSearch() {
+  clearTimeout(_searchTimer);
+  _searchTimer = setTimeout(function(){ _userPage = 1; loadUsers(); }, 300);
+}
+function debounceChatSearch() {
+  clearTimeout(_searchTimer);
+  _searchTimer = setTimeout(function(){ loadChats(); }, 300);
+}
+
+// ═══════════════════════════════════════════
+// INIT
+// ═══════════════════════════════════════════
+checkAuth();
 </script>
 </body>
 </html>

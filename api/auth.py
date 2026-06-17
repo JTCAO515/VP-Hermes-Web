@@ -407,15 +407,56 @@ def handle_google_login(environ, start_response):
     })
 
 
-def handle_admin_users(start_response):
-    """GET /api/admin/users — list all users."""
+def handle_admin_users(environ, start_response):
+    """GET /api/admin/users — list all users with optional search/filter/page."""
+    import urllib.parse
+    params = urllib.parse.parse_qs(environ.get("QUERY_STRING", ""))
+    search = (params.get("search", [""])[0] or "").strip()
+    role_filter = params.get("role", [""])[0] or ""
+    status_filter = params.get("status", [""])[0] or ""
+    page = int(params.get("page", ["1"])[0])
+    limit = int(params.get("limit", ["50"])[0])
+    offset = (page - 1) * limit
+
     conn = _get_db()
+    where = []
+    bind = []
+    if search:
+        where.append("(email LIKE ? OR display_name LIKE ?)")
+        bind.extend([f"%{search}%", f"%{search}%"])
+    if role_filter:
+        where.append("role = ?")
+        bind.append(role_filter)
+    if status_filter:
+        where.append("status = ?")
+        bind.append(status_filter)
+
+    where_clause = " AND ".join(where) if where else "1=1"
+
+    total = conn.execute(
+        f"SELECT COUNT(*) FROM users WHERE {where_clause}", bind
+    ).fetchone()[0]
+
     rows = conn.execute(
-        "SELECT id, email, role, created_at FROM users ORDER BY created_at DESC"
+        f"SELECT id, email, display_name, role, status, created_at FROM users WHERE {where_clause} ORDER BY created_at DESC LIMIT ? OFFSET ?",
+        bind + [limit, offset]
     ).fetchall()
     conn.close()
     users = [dict(r) for r in rows]
-    return _json(start_response, {"users": users, "total": len(users)})
+    return _json(start_response, {"users": users, "total": total, "page": page, "limit": limit})
+
+
+def handle_admin_user_detail(environ, start_response, user_id: str):
+    """GET /api/admin/users/:id — get single user details (ops/admin)."""
+    conn = _get_db()
+    row = conn.execute(
+        "SELECT id, email, display_name, role, status, created_at, updated_at FROM users WHERE id = ?",
+        (user_id,)
+    ).fetchone()
+    conn.close()
+    if row is None:
+        return _json_error(start_response, "User not found", "404 Not Found")
+    return _json(start_response, {"user": dict(row)})
 
 
 def handle_admin_delete(environ, start_response, user_id: str):
@@ -908,7 +949,7 @@ def handle_auth_route(environ, start_response, path: str, method: str) -> list[b
         user = check(environ, start_response)
         if user is None:
             return []
-        return handle_admin_users(start_response)
+        return handle_admin_users(environ, start_response)
 
     if path.startswith("/api/admin/users/") and method == "DELETE":
         check = require_role("ops", "admin")
@@ -930,6 +971,16 @@ def handle_auth_route(environ, start_response, path: str, method: str) -> list[b
             if user is None:
                 return []
             return handle_admin_user_update(environ, start_response, user_id)
+
+    # GET /api/admin/users/:id — ops/admin view single user detail (not /chat)
+    if path.startswith("/api/admin/users/") and method == "GET" and not path.endswith("/chat"):
+        user_id = path[len("/api/admin/users/"):]
+        if user_id and "/" not in user_id:
+            check = require_role("ops", "admin")
+            user = check(environ, start_response)
+            if user is None:
+                return []
+            return handle_admin_user_detail(environ, start_response, user_id)
 
     # GET /api/admin/users/:id/chat — ops/admin view user conversations
     if path.startswith("/api/admin/users/") and path.endswith("/chat") and method == "GET":
