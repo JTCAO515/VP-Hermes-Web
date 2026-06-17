@@ -19,6 +19,7 @@ import json
 import os
 import sqlite3
 import time
+import urllib.request
 import uuid
 from pathlib import Path
 from urllib.parse import parse_qs
@@ -35,6 +36,11 @@ TOKEN_SECONDS = TOKEN_DAYS * 24 * 3600
 
 # ── Admin override key (optional, set env ADMIN_KEY for extra security) ──
 ADMIN_KEY = os.environ.get("ADMIN_KEY", "vp-admin-2026")
+
+# ── Google OAuth ──
+GOOGLE_CLIENT_ID = os.environ.get("GOOGLE_CLIENT_ID", "")
+# TokenInfo endpoint for verifying Google ID tokens (stdlib only, no external deps)
+GOOGLE_TOKENINFO_URL = "https://oauth2.googleapis.com/tokeninfo?id_token="
 
 
 # ════════════════════════════════════════════════════════════
@@ -54,16 +60,8 @@ def _get_db() -> sqlite3.Connection:
 def init_db():
     """Create tables if not exist. Safe to call repeatedly."""
     conn = _get_db()
+    # Phase 1: Create tables (without google_id index — added after migration)
     conn.executescript("""
-        CREATE TABLE IF NOT EXISTS users (
-            id          TEXT PRIMARY KEY,
-            email       TEXT UNIQUE NOT NULL,
-            password_hash TEXT NOT NULL,
-            salt        TEXT NOT NULL,
-            role        TEXT NOT NULL DEFAULT 'user',
-            created_at  TEXT NOT NULL DEFAULT (datetime('now')),
-            updated_at  TEXT NOT NULL DEFAULT (datetime('now'))
-        );
         CREATE TABLE IF NOT EXISTS sessions (
             token       TEXT PRIMARY KEY,
             user_id     TEXT NOT NULL REFERENCES users(id) ON DELETE CASCADE,
@@ -102,6 +100,34 @@ def init_db():
         CREATE INDEX IF NOT EXISTS idx_conv_user ON chat_conversations(user_id);
         CREATE INDEX IF NOT EXISTS idx_msg_conv ON chat_messages(conversation_id, created_at);
     """)
+    # Phase 2: Create users table + migrate existing if needed
+    conn.execute("""
+        CREATE TABLE IF NOT EXISTS users (
+            id          TEXT PRIMARY KEY,
+            email       TEXT UNIQUE NOT NULL,
+            password_hash TEXT NOT NULL DEFAULT '',
+            salt        TEXT NOT NULL DEFAULT '',
+            display_name TEXT NOT NULL DEFAULT '',
+            role        TEXT NOT NULL DEFAULT 'user',
+            status      TEXT NOT NULL DEFAULT 'active',
+            google_id   TEXT DEFAULT NULL,
+            created_at  TEXT NOT NULL DEFAULT (datetime('now')),
+            updated_at  TEXT NOT NULL DEFAULT (datetime('now'))
+        )
+    """)
+    # Migration: add columns to existing users table (safe to run repeatedly)
+    for col, typ in [("google_id", "TEXT DEFAULT NULL"),
+                     ("display_name", "TEXT NOT NULL DEFAULT ''"),
+                     ("status", "TEXT NOT NULL DEFAULT 'active'")]:
+        try:
+            conn.execute(f"ALTER TABLE users ADD COLUMN {col} {typ}")
+        except sqlite3.OperationalError:
+            pass
+    # Now safe to create the partial index
+    try:
+        conn.execute("CREATE UNIQUE INDEX IF NOT EXISTS idx_users_google ON users(google_id) WHERE google_id IS NOT NULL")
+    except sqlite3.OperationalError:
+        pass
     conn.commit()
     conn.close()
 
@@ -292,6 +318,93 @@ def handle_me(environ, start_response):
     if user is None:
         return _json_error(start_response, "Invalid or expired token", "401 Unauthorized")
     return _json(start_response, {"user": user})
+
+
+# ════════════════════════════════════════════════════════════
+# GOOGLE OAUTH
+# ════════════════════════════════════════════════════════════
+
+def handle_google_login(environ, start_response):
+    """POST /api/auth/google/login — receive Google credential (ID token) → verify → login/register."""
+    data = _read_post(environ)
+    credential = data.get("credential", "") or ""
+
+    if not credential:
+        return _json_error(start_response, "Google credential required")
+
+    if not GOOGLE_CLIENT_ID:
+        return _json_error(start_response, "Google login not configured", "503 Service Unavailable")
+
+    try:
+        # Verify the ID token via Google's tokeninfo endpoint (stdlib only)
+        url = GOOGLE_TOKENINFO_URL + urllib.request.quote(credential, safe='')
+        req = urllib.request.Request(url, headers={"User-Agent": "VisePanda/3.1"})
+        with urllib.request.urlopen(req, timeout=10) as resp:
+            payload = json.loads(resp.read().decode())
+
+        # Verify it's our client
+        if payload.get("aud") != GOOGLE_CLIENT_ID:
+            return _json_error(start_response, "Token audience mismatch", "401 Unauthorized")
+
+        google_id = payload.get("sub", "")
+        email = payload.get("email", "").lower()
+        name = payload.get("name", "") or email.split("@")[0]
+
+        if not google_id or not email:
+            return _json_error(start_response, "Invalid Google token: missing user info", "401 Unauthorized")
+
+    except urllib.error.HTTPError as e:
+        return _json_error(start_response, f"Google token verification failed: {e.code}", "401 Unauthorized")
+    except Exception as e:
+        return _json_error(start_response, f"Google verification error: {str(e)[:100]}", "401 Unauthorized")
+
+    # Find or create user
+    conn = _get_db()
+    user = conn.execute(
+        "SELECT id, email, role, display_name FROM users WHERE google_id = ?",
+        (google_id,)
+    ).fetchone()
+
+    if user is None:
+        # Try by email (link Google account to existing email user)
+        user = conn.execute(
+            "SELECT id, email, role, display_name FROM users WHERE email = ?",
+            (email,)
+        ).fetchone()
+
+        if user:
+            # Link Google account to existing user
+            conn.execute(
+                "UPDATE users SET google_id = ?, display_name = COALESCE(NULLIF(display_name,''), ?) WHERE id = ?",
+                (google_id, name, user["id"])
+            )
+        else:
+            # Create new user
+            user_id = uuid.uuid4().hex
+            conn.execute(
+                "INSERT INTO users (id, email, display_name, role, google_id) VALUES (?, ?, ?, 'user', ?)",
+                (user_id, email, name, google_id)
+            )
+            user = {"id": user_id, "email": email, "role": "user", "display_name": name}
+
+    # Generate session token
+    token = _generate_token()
+    conn.execute(
+        "INSERT INTO sessions (token, user_id, expires_at) VALUES (?, ?, datetime('now', '+{} seconds'))".format(TOKEN_SECONDS),
+        (token, user["id"]),
+    )
+    conn.commit()
+    conn.close()
+
+    return _json(start_response, {
+        "token": token,
+        "user": {
+            "id": user["id"],
+            "email": user["email"],
+            "role": user["role"],
+            "display_name": user.get("display_name", ""),
+        },
+    })
 
 
 def handle_admin_users(start_response):
@@ -765,6 +878,10 @@ def handle_auth_route(environ, start_response, path: str, method: str) -> list[b
 
     if path == "/api/auth/me" and method == "GET":
         return handle_me(environ, start_response)
+
+    # ── Google OAuth ──
+    if path == "/api/auth/google/login" and method == "POST":
+        return handle_google_login(environ, start_response)
 
     # ── Chat history routes ──
     if path == "/api/auth/chat/save" and method == "POST":

@@ -1651,6 +1651,44 @@ const VP = (function(){
         })
       }).then(function(r){ return r.json(); });
     },
+
+    // Google login
+    googleLogin: function(credential) {
+      if (!credential) return;
+      var errEl = document.getElementById('auth-error');
+      errEl.classList.add('hidden');
+
+      fetch('/api/auth/google/login', {
+        method: 'POST',
+        headers: {'Content-Type': 'application/json'},
+        body: JSON.stringify({credential: credential})
+      }).then(function(r){
+        return r.json().then(function(d){ d._status = r.status; return d; });
+      }).then(function(data){
+        if (data._status >= 400) {
+          throw new Error(data.error || 'Google login failed');
+        }
+        _authToken = data.token;
+        _authUser = data.user;
+        localStorage.setItem('vp_token', _authToken);
+        localStorage.setItem('vp_user', JSON.stringify(data.user));
+        _updateAuthUI();
+        document.getElementById('auth-login-form').classList.add('hidden');
+        document.getElementById('auth-success-title').textContent = 'Welcome! 🐼';
+        document.getElementById('auth-success-msg').textContent = 'Signed in with Google as ' + (data.user.email || '');
+        document.getElementById('auth-success').classList.remove('hidden');
+      }).catch(function(err){
+        errEl.textContent = err.message;
+        errEl.classList.remove('hidden');
+      });
+    },
+  };
+
+  // Google OAuth callback (called from GIS library)
+  window.handleGoogleCredential = function(response) {
+    if (response && response.credential) {
+      auth.googleLogin(response.credential);
+    }
   };
 
   // ── Expose public API ──
