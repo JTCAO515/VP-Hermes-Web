@@ -1,5 +1,13 @@
 # Changelog
 
+## v4.0.3 — 2026-06-19
+
+### Added
+- B3: 城市对比模式 — `GET /api/cities/compare?cities=a,b` 后端端点
+- B3: 前端对比弹窗渲染（Vibe / Best Season / Budget / Highlights 横向对比）
+- B3: Chat 中自动检测「对比北京和成都」「compare beijing chengdu」触发对比
+- B3: 缺字段显示 N/A，不崩不藏
+
 ## v4.0.2 — 2026-06-19
 
 ### Added

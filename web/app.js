@@ -1,5 +1,5 @@
 /* ═══════════════════════════════════════════════════════════
-   VisePanda v4.0.2 — Frontend Application
+   VisePanda v4.0.3 — Frontend Application
    ═══════════════════════════════════════════════════════════ */
 
 const VP = (function(){
@@ -733,6 +733,12 @@ const VP = (function(){
     // Track current city across multi-turn conversation
     const detected = detectCity(text);
     if (detected) currentCity = detected;
+
+    // Auto-detect compare intent (对比北京和成都 → show comparison table)
+    const compareIntent = detectCompareIntent(text);
+    if (compareIntent && compareIntent.length >= 2) {
+      compareCities(compareIntent);
+    }
   
     saveMessages();
 
@@ -1168,6 +1174,116 @@ const VP = (function(){
 
   function copyTimeline() {
     if (window.TripTimeline) TripTimeline.copy();
+  }
+
+  // ── City Comparison ──
+  function compareCities(cityNames) {
+    if (!cityNames || cityNames.length < 2) return;
+
+    const q = cityNames.map(c => encodeURIComponent(c.trim().toLowerCase())).join(',');
+    fetch('/api/cities/compare?cities=' + q)
+      .then(r => r.json())
+      .then(data => {
+        if (!data.comparisons || !data.comparisons.cities) return;
+        renderComparison(data.comparisons.cities);
+      })
+      .catch(() => {});
+  }
+
+  function renderComparison(cities) {
+    if (!cities || cities.length < 2) return;
+
+    // Fields to compare (excluding found/highlights/keywords)
+    const fieldLabels = {
+      vibe: 'Vibe',
+      best_season: 'Best Season',
+      days: 'Recommended',
+      budget_tip: 'Budget Tip',
+      province: 'Province',
+    };
+    const fieldKeys = Object.keys(fieldLabels);
+
+    let html = '<div class="compare-overlay" id="compare-overlay">'
+      + '<div class="compare-modal">'
+      + '<div class="compare-header">'
+      + '<span class="compare-title">🏙️ City Comparison</span>'
+      + '<button class="compare-close" onclick="this.closest(\'.compare-overlay\').remove()">✕</button>'
+      + '</div>'
+      + '<div class="compare-table-wrap"><table class="compare-table">';
+
+    // Header row
+    html += '<tr><th></th>';
+    cities.forEach(c => {
+      html += '<th>' + escHtml(c.name_en || c.name_cn || '?') + '</th>';
+    });
+    html += '</tr>';
+
+    // Field rows
+    fieldKeys.forEach(k => {
+      if (!fieldLabels[k]) return;
+      const values = cities.map(c => {
+        const v = c[k];
+        if (!v) return '<span class="na">N/A</span>';
+        return escHtml(String(v));
+      });
+      // Skip rows where all values are empty
+      if (values.every(v => v === '<span class="na">N/A</span>')) return;
+      
+      html += '<tr><td class="field-label">' + fieldLabels[k] + '</td>';
+      values.forEach(v => {
+        html += '<td>' + v + '</td>';
+      });
+      html += '</tr>';
+    });
+
+    // Highlights row
+    html += '<tr><td class="field-label">Highlights</td>';
+    cities.forEach(c => {
+      const h = c.highlights || [];
+      html += '<td class="highlights-cell">' + h.slice(0, 5).map(x => '<span class="hl-tag">' + escHtml(x) + '</span>').join('') + '</td>';
+    });
+    html += '</tr>';
+
+    html += '</table></div>'
+      + '<div class="compare-footer"><button class="compare-btn-chat" onclick="this.closest(\'.compare-overlay\').remove()">Close</button></div>'
+      + '</div></div>';
+
+    // Add to body
+    const existing = document.getElementById('compare-overlay');
+    if (existing) existing.remove();
+    const div = document.createElement('div');
+    div.innerHTML = html;
+    document.body.appendChild(div.firstElementChild);
+  }
+
+  // ── Detect compare intent in chat input ──
+  function detectCompareIntent(text) {
+    // Match patterns like: "对比北京和成都", "compare beijing chengdu", "北京 vs 成都"
+    if (!text || typeof text !== 'string') return null;
+
+    const cityNames = [];
+    // Try to load city names from the data
+    const cityData = window.__cityNamesCache || [];
+    
+    // First try Chinese patterns: 对比/比较X和Y
+    const cnMatch = text.match(/(?:对比|比较|compare)\s*(.+?)(?:和|与|vs|vs\.|and)\s*(.+)/i);
+    if (cnMatch) {
+      const a = cnMatch[1].trim();
+      const b = cnMatch[2].trim();
+      // Remove trailing punctuation / whitespace from b
+      const bClean = b.replace(/[？?。！!\s]+$/, '').trim();
+      return [a, bClean];
+    }
+
+    // Try "X vs Y" pattern
+    const vsMatch = text.match(/(.+?)\s*(?:vs\.?|对比)\s*(.+)/i);
+    if (vsMatch) {
+      const a = vsMatch[1].trim();
+      const b = vsMatch[2].trim().replace(/[？?。！!\s]+$/, '').trim();
+      if (a.length < 20 && b.length < 20) return [a, b];
+    }
+
+    return null;
   }
 
   function autoSaveTrip(city, content) {
@@ -2070,6 +2186,7 @@ const VP = (function(){
     shareTrip,
     deleteTrip,
     copyTimeline,
+    compareCities,
     mapCloseDetail,
     mapOpenChat,
     chatOverlayBack,

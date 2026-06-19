@@ -145,6 +145,74 @@ _MAP_DATA = {
 
 
 # ════════════════════════════════════════════════════════════
+# COMPARE API
+# ════════════════════════════════════════════════════════════
+
+def handle_cities_compare(environ, start_response):
+    """GET /api/cities/compare?cities=beijing,chengdu — side-by-side comparison."""
+    from urllib.parse import parse_qs
+    from api.common import _json
+
+    qs = environ.get("QUERY_STRING", "")
+    params = parse_qs(qs)
+    city_names = params.get("cities", [""])[0].split(",")
+    city_names = [c.strip().lower() for c in city_names if c.strip()]
+
+    if len(city_names) < 2:
+        return _json(start_response, {"error": "Provide at least 2 cities via ?cities=a,b"}, "400 Bad Request")
+
+    raw_data = _load_json(DATA_DIR / "cities.json") or {}
+    cities_data = raw_data if isinstance(raw_data, dict) else {}
+
+    # Build a lookup: name_en/cn → data
+    lookup = {}
+    for key, val in cities_data.items():
+        if isinstance(val, dict):
+            lookup[key.lower()] = val
+            lookup[val.get("name_en", "").lower()] = val
+            lookup[val.get("name_cn", "").lower()] = val
+
+    comparisons = {"cities": [], "fields": {}}
+
+    for name in city_names:
+        # Try direct match
+        raw = cities_data.get(name) or lookup.get(name)
+        if raw is None:
+            # Try partial match in name_en or name_cn
+            for k, v in cities_data.items():
+                if not isinstance(v, dict):
+                    continue
+                en = v.get("name_en", "").lower()
+                cn = v.get("name_cn", "").lower()
+                if name in en or name in cn or en in name or cn in name:
+                    raw = v
+                    break
+
+        entry = {
+            "name_en": "Unknown",
+            "name_cn": "未知",
+            "vibe": None,
+            "best_season": None,
+            "days": None,
+            "budget_tip": None,
+            "province": None,
+            "highlights": [],
+            "keywords": [],
+            "found": raw is not None,
+        }
+
+        if raw and isinstance(raw, dict):
+            for k in ("name_en", "name_cn", "vibe", "best_season", "days", "budget_tip", "province"):
+                entry[k] = raw.get(k, entry[k])
+            entry["highlights"] = raw.get("highlights", [])
+            entry["keywords"] = raw.get("keywords", [])
+
+        comparisons["cities"].append(entry)
+
+    return _json(start_response, {"comparisons": comparisons})
+
+
+# ════════════════════════════════════════════════════════════
 # ESTIMATE API
 # ════════════════════════════════════════════════════════════
 

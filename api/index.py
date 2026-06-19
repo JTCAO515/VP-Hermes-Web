@@ -34,6 +34,11 @@ def app(environ, start_response):
         from api.chat import handle_chat
         return handle_chat(environ, start_response)
 
+    # ── Compare API (must be before /api/cities catch-all) ──
+    if path == "/api/cities/compare" and method == "GET":
+        from api.cities import handle_cities_compare
+        return handle_cities_compare(environ, start_response)
+
     # ── Cities API ──
     if path.startswith("/api/cities") and method == "GET":
         from api.cities import handle_cities
