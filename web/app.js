@@ -1826,12 +1826,15 @@ const VP = (function(){
       if (data && data.user) {
         _authUser = data.user;
         localStorage.setItem('vp_user', JSON.stringify(data.user));
-        _updateAuthUI();
       }
+      _updateAuthUI();
     }).catch(function(){
       _authToken = null;
       localStorage.removeItem('vp_token');
+      _updateAuthUI();
     });
+  } else {
+    _updateAuthUI();
   }
 
   function _updateAuthUI() {

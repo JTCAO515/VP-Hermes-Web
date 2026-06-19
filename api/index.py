@@ -25,8 +25,8 @@ def app(environ, start_response):
     if path == "/api/health" and method == "GET":
         return _json(start_response, {
             "status": "alive",
-            "version": "3.2.0",
-            "build": "2026-06-15",
+            "version": "4.0.5",
+            "build": "2026-06-19",
         })
 
     # ── Chat SSE ──
