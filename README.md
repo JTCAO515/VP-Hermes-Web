@@ -113,6 +113,10 @@ curl http://127.0.0.1:8765/api/health
 
 See [CHANGELOG.md](CHANGELOG.md) for full version history.
 
+## Planning Docs
+
+- [Commercial Upgrade Plan](docs/2026-06-20-commercial-upgrade-plan.md)
+
 ## Current Implementation Notes
 
 - Foundation phase has already landed in code: auth/admin/trips/config contract tests live under `/workspace/VP-Hermes-Web/tests`.
