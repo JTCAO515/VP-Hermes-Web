@@ -1,440 +1,571 @@
-# VisePanda (VP-Hermes-Web) v5.0.9 — Handoff Document
+# VisePanda (VP-Hermes-Web) 项目交接文档
 
-> **Last Updated:** 2026-06-20
-> **Status:** ✅ Active — foundation contracts are in place, the Editorial Atlas interface has been refined, the Production Stability Pass has landed, and the current release is aligned at v5.0.9
-> **Repo:** `https://github.com/JTCAO515/VP-Hermes-Web.git` (HTTPS, PAT auth)
-> **Live URL:** https://www.go2china.space (Vercel auto-deploy on push)
-> **Vercel Project:** `vise-panda-2` (custom domain `www.go2china.space`)
-> **Agent Memory Key:** `VP-Hermes-Web`, `vise-panda-2`, `go2china`, `VisePanda`
-
----
-
-## 1. Product Overview
-
-**AI China Travel Planner** — Specialized AI travel planner for international travelers visiting China.
-
-Powered by DeepSeek V4 Flash + 36-city curated knowledge base (English-native, Chinese proper nouns in parentheses). Provides city recommendations, day-by-day itineraries, local food/hotel/transport tips, visa guides, packing lists, and expense estimates. SPA with auth system for trip persistence and chat history.
-
-Target user: Non-Chinese tourists planning trips to China (English interface, China-specific content).
+> **最后更新：** 2026-06-20  
+> **当前版本：** `v5.0.9`  
+> **当前状态：** 可继续开发、可继续线上验证、基础稳定性已补一轮，但仍处于“产品验证到准商用”之间的阶段  
+> **代码仓库：** `https://github.com/JTCAO515/VP-Hermes-Web.git`  
+> **线上地址：** `https://www.go2china.space`  
+> **当前部署：** `Vercel` 自动部署，现阶段继续保留  
+> **项目代号：** `VisePanda` / `VP-Hermes-Web` / `go2china`
 
 ---
 
-## 2. Architecture
+## 1. 项目是什么
 
-```
-┌─ Frontend (Vanilla SPA) ─────────────────────┐
-│  web/index.html + web/app.js + web/app.css    │
-│  Panda Chinese Style, Dark/Light themes       │
-│  Leaflet (fallback) / AMap (Gaode)            │
-│  SSE streaming chat → multi-bubble rendering  │
-│  Auth: Google OAuth + Email/Password          │
-│  Trip timeline: drag-drop day-by-day planner  │
-│  50 inline city images                        │
-└────────┬────────────────┬─────────────────────┘
-         │ fetch/SSE      │ static files
-         ▼                ▼
-┌─ Vercel WSGI (Python stdlib) ─────────────────┐
-│  api/index.py → route dispatcher              │
-│  api/auth.py → user auth + trips + chat       │
-│  api/chat.py → SSE stream (DeepSeek)          │
-│  api/cities.py → city data + compare          │
-│  api/tools.py → travel toolkit                │
-│  api/visa.py → visa policy + letter gen       │
-│  api/config.py → map config                   │
-│  api/common.py → shared utils                 │
-└────────┬──────────────────────────────────────┘
-         │ LLM call
-         ▼
-┌─ DeepSeek V4 Flash ───────────────────────────┐
-│  deepseek-chat model, SSE streaming           │
-│  temp=0.7, max_tokens=2048                    │
-│  English system prompt + contextual KB inject │
-└───────────────────────────────────────────────┘
-```
+`VisePanda` 是一个面向**来中国旅行的国际游客**的 AI 旅行规划网站。  
+它不是泛用聊天机器人，而是一个围绕“中国旅行”这个垂直场景搭建的产品网站。
 
-### Key Design Decisions
+项目目前的核心定位有三条：
 
-| Decision | Choice | Why |
-|----------|--------|-----|
-| Backend | Python WSGI (stdlib only) | Zero pip deps, fast cold start on Vercel |
-| Frontend | Vanilla JS SPA | No framework overhead, direct DOM control |
-| LLM | DeepSeek V4 Flash | Cost-effective, fast streaming, China travel expertise |
-| Auth | SQLite-backed email/password + Google OAuth + JWT | The active auth/session/trips path is concentrated in `api/auth.py`, which keeps local and test regression simple |
-| Maps | AMap (Gaode) + Leaflet fallback | AMap for China (better data), Leaflet when no key |
-| Session | localStorage + JWT tokens | Simple persistence, no full DB needed |
-| Images | Static JPEGs from Wikimedia | Zero API cost, fast loading, CC-licensed |
-| i18n | English-native (data layer) | Target users = international tourists |
-| Deploy | Vercel auto-deploy from GitHub | One push → live, zero infra maintenance |
+1. 用聊天的方式帮助用户规划中国行程
+2. 提供中国城市、餐饮、住宿、签证、预算、急救等结构化旅行信息
+3. 做成一个英文原生、可继续走向商用的旅游产品站
+
+一句话概括：
+
+> **一个面向国际游客、围绕中国旅行场景、以 AI 对话规划为主入口的英文原生产品网站。**
 
 ---
 
-## 3. Current State
+## 2. 项目现在能做什么
 
-### ✅ Completed (v5.0.9)
+这部分是交接时最重要的“已完成能力清单”，接手者应该先理解这些能力已经存在，不要重复造轮子。
 
-| Phase | Feature | Version |
-|-------|---------|:-------:|
-| 🏗️ Core | WSGI backend, SPA frontend, routing | v3.0.1 |
-| 🧪 Foundation | Python `unittest` + Node `--test` contract/structure regression | v5.0.1 → v5.0.3 |
-| 💬 Chat | SSE streaming, DeepSeek, multi-bubble rendering | v3.0.1 → v3.0.6 |
-| 🗺️ Maps | Leaflet dark maps, POI markers, AMap integration | v3.0.1 → v3.0.4 |
-| 🔍 FAQ | 10-category matching engine, query expansion | v3.0.2 |
-| 📚 Knowledge | 36 cities, food/hotels/tips/attractions/packing/phrases/emergency | v3.0.1 |
-| 🎨 Design | Panda × Chinese aesthetic, dark/light dual themes | v3.0.1 |
-| 📱 Mobile | Bottom nav, chat overlay, safe-area, dvh | v3.0.5 |
-| 🖼️ Images 50 | 36 city + 5 food + 4 inspiration + 2 logo + 3 landmark | v3.0.7 |
-| 🔒 Security | Input validation, XSS protection, abort fix | v3.0.8 |
-| 🔐 Auth | Google OAuth + email/password, JWT session, admin panel | v4.0.0 |
-| 🗂️ Trips | Save/load/delete trips, day-by-day timeline | v4.0.1 |
-| 💬 Chat History | Save conversations, full history browser | v4.0.6 |
-| 🇬🇧 English-native | All UI/text in English, CN proper nouns parenthesised | v4.1.0 → v4.1.2 |
-| 🏛️ Admin | User list, chat logs, stats dashboard, user detail | v4.0.4 |
-| 🛂 Visa tools | Visa policy lookup, visa letter generation | v4.0.3 |
-| 🏠 Editorial Atlas Home | Hero / Trust Layer / City Rail / Planner Entry structure + hero metrics / editorial lead | v5.0.4 |
-| 🧭 Main-page Atlas Structure | Chat action rail / Trips recent+saved / Tools view / Admin hero | v5.0.3 |
-| 🏙 Editorial Browsing | Cities filter rail / editorial lead / Trips atlas note | v5.0.4 |
-| 📱 Portrait Mobile UX | Compressed hero rhythm / Chat safe-area shell / swipeable filter rail / one-hand card browsing | v5.0.5 |
-| 🤳 Mobile Detail Pass | Chat quick scroll / Trips thumb-first actions / Tools mobile gallery / Cities card caption | v5.0.6 |
-| 🇬🇧 English-native Website | UI copy + city / food / hotel runtime data localized into natural English with `English（中文）` proper nouns | v5.0.7 |
-| 🧰 Toolkit Detail Sheets | Expandable English-first toolkit sheets + English-only compatibility i18n layer | v5.0.8 |
-| 🛡️ Production Stability Pass | Bootstrap hardening / image fallback / loading-state shell / mobile nav recovery | v5.0.9 |
-| 🚀 Deploy | Vercel WSGI auto-deploy from GitHub | v3.0.1 |
+## 2.1 用户可见能力
 
-### 🟡 Known Quirks / Gotchas
+### AI 聊天规划
 
-| # | Issue | Impact | Workaround |
-|---|-------|--------|------------|
-| 1 | **SSH git push deprecated** — Using HTTPS with PAT now. Vercel imports from public repo | Low | Push via HTTPS, Vercel builds automatically |
-| 2 | **ESTIMATE_DATA only covers 7/36 cities** — Beijing, Shanghai, Chengdu, Guangzhou, Xi'an, Guilin, Hangzhou have pricing | Low | Other cities show blank estimates in pricing tool |
-| 3 | **MAP_DATA POIs only for 8 cities** — Shenzhen onward have coordinates but no POI list | Low | Map markers still work |
-| 4 | **Vercel cold start** — First request after idle takes ~3-5s | Acceptable | Warm-up via cron possible |
-| 5 | **Admin login** — Admin can't login via Google OAuth (must use email/password registered separately) | Very Low | Documented in admin workflow |
-| 6 | **Weather API** — `api/weather.py` exists but is still not wired into any UI feature | Very Low | Keep it as a future option; it is not active today |
-| 7 | **Weather API** — api/weather.py exists but not wired into any UI feature | Very Low | Not used |
-| 8 | **Legacy static modules** — `static/*` files are mostly compatibility artifacts, not the active SPA shell | Very Low | Safe to keep for now; revisit only if a cleanup pass is needed |
+- 支持聊天式输入旅行需求
+- 后端通过 `DeepSeek V4 Flash` 做流式回复
+- 前端支持多气泡渲染
+- 能在回复中生成分段规划内容
+- FAQ 匹配和部分城市上下文注入已接入
+
+### 城市知识库
+
+- 已覆盖 `36` 个中国城市
+- 城市内容包括：
+  - 城市概览
+  - 氛围
+  - 适合季节
+  - 亮点
+  - 餐饮
+  - 住宿
+  - 地图与 POI
+  - 实用提示
+
+### 行程能力
+
+- 支持登录用户保存 trip
+- 支持读取 trip
+- 支持删除 trip
+- 支持聊天历史与用户会话数据保存
+- Trip 内容支持更完整的 `preview + content` 模型
+
+### 工具能力
+
+当前 `Tools` 已经从“有入口的目录页”升级为“可展开详情的工具页”，覆盖：
+
+- Packing
+- Pricing
+- Visa
+- Phrases
+- Emergency
+
+### 后台与用户能力
+
+- Email / Password 登录
+- Google OAuth 登录
+- 用户 profile
+- Admin 用户列表、用户详情、统计与聊天记录查看
+
+### 英文原生能力
+
+- 主站真实面向用户的内容已完成一轮英文原生化
+- 中国专属名词用 `English（中文）` 形式保留
+- 更适合英语用户理解与使用
+
+### 手机端能力
+
+- 底部导航
+- Safe-area 留白
+- 竖屏布局优化
+- Chat / Trips / Cities / Tools 的移动端细化
+
+## 2.2 工程能力
+
+- 已有 Python 与 Node 双回归测试
+- 已形成版本号、文档、测试、发布联动流程
+- GitHub push 后自动触发 `Vercel` 部署
 
 ---
 
-## 4. File Structure
+## 3. 当前页面结构与内容格式
 
-```
-VP-Hermes-Web/
-├── api/                          # Python WSGI backend (stdlib only)
-│   ├── index.py                  WSGI entry point, route dispatcher (~100 lines)
-│   ├── auth.py                   Auth, trips, chat history, admin (~1100 lines)
-│   ├── chat.py                   SSE streaming chat handler (~250 lines)
-│   ├── cities.py                 City data, compare, estimate, validate (~260 lines)
-│   ├── common.py                 Shared utils (JSON, static serving, CORS) (~80 lines)
-│   ├── config.py                 Map config, client config (~30 lines)
-│   ├── tools.py                  Travel toolkit router (~20 lines)
-│   ├── visa.py                   Visa policy & letter generation (~140 lines)
-│   ├── weather.py                Weather data (unwired) (~50 lines)
-│   ├── prompt.py                 English system prompt (~200 lines)
-│   ├── ics_export.py             Calendar export (~50 lines)
-│   ├── test_auth.py              Auth tests
-│   └── .env.example              Environment template
-├── web/                          # Frontend SPA
-│   ├── index.html                SPA entry (377 lines)
-│   ├── app.js                    Core frontend logic (~2420 lines, vanilla JS IIFE)
-│   ├── app.css                   Style system (~1200 lines, Panda Chinese theme)
-│   ├── admin.html                Admin panel page
-│   ├── trip-timeline.js          Day-by-day trip planner (~400 lines)
-│   ├── trip-timeline.css         Trip timeline styles (~200 lines)
-│   ├── manifest.json             PWA manifest
-│   └── sw.js                     Service worker (basic offline)
-├── static/                       # Static assets
-│   ├── auth.js                   Auth UI module (~150 lines)
-│   ├── chat.js                   Chat UI module (~100 lines)
-│   ├── i18n.js                   Internationalization (en + zh) (~70 lines)
-│   ├── landing.js                Landing page module (~100 lines)
-│   ├── map.js                    Map module (~80 lines)
-│   ├── profile.js                Profile page module (~50 lines)
-│   ├── trips.js                  Trips page module (~80 lines)
-│   ├── sw.js                     Service worker
-│   ├── icon.svg                  Site icon
-│   └── img/                      50 JPEG images (city, food, landmark, inspiration)
-├── data/                         # Knowledge base
-│   ├── cities.json               36 cities with full data
-│   ├── food.json                 Food entries per city
-│   ├── hotels.json               Hotel pricing by tier
-│   ├── tips.json                 Local travel tips
-│   ├── faq.json                  FAQ matching engine data
-│   ├── tools.json                Travel toolkit data
-│   ├── visa_policies.json        Visa policy rules
-│   ├── city_images.json          Image metadata
-│   ├── users.db                  SQLite data file (legacy sample path; active DB path also supports `AUTH_DB_PATH`)
-│   └── knowledge/                Curated Python knowledge modules
-│       ├── cities.py             36 city data (English)
-│       ├── food.py               Food descriptions (English+CN)
-│       ├── attractions.py        Attractions tips (English+CN)
-│       ├── hotels.py             Hotel recommendations
-│       ├── tips.py               Travel tips (English)
-│       ├── packing.py            Packing list (English)
-│       ├── phrases.py            Useful phrases (English+Pinyin+CN)
-│       ├── transport.py          Transport guide (English)
-│       ├── emergency.py          Emergency info (English)
-│       └── __init__.py
-├── docs/                         # Documentation
-│   ├── adr/                      5 ADR documents
-│   ├── agents/                   Agent instructions (AGENTS.md routing)
-│   ├── PRD_PRODUCT_ANALYSIS.md   Product strategy
-│   ├── PRD_USER_SYSTEM.md        User system PRD (Chinese)
-│   └── ...                       Various product docs
-├── scripts/                      # Utility scripts
-│   └── generate_city_images.sh   Image download script
-├── vercel.json                   Vercel deployment config (wsgi + fallback)
-├── CHANGELOG.md                  Version history
-├── PLAN.md                       Iteration roadmap
-├── PRD_PRODUCT_ANALYSIS.md       Product strategy document
-├── HANDOFF.md                    THIS FILE
-├── DESIGN.md                     Design tokens
-├── CONTEXT.md                    Agent context
-├── AGENTS.md                     Agent routing instructions
-├── README.md                     English product README
-├── requirements.txt              Dependencies (stdlib only — empty)
-└── .vercelignore                 Vercel build exclusions
+项目当前是一个 `Vanilla JS SPA`，主要页面包括：
+
+| 页面 | 作用 | 当前状态 |
+|------|------|----------|
+| `Home` | 首页，承担第一印象、信任层、城市入口、快速规划入口 | 已完成 `Editorial Atlas` 风格化升级 |
+| `Chat` | AI 规划主入口 | 可用，支持流式聊天 |
+| `Map` | 中国地图与城市入口 | 可用，POI 覆盖不完整 |
+| `Trips` | 用户行程保存与浏览 | 可用 |
+| `Cities` | 36 城市内容浏览与详情 | 可用 |
+| `Tools` | 签证、预算、短语、急救、打包等工具 | 已可展开详情 |
+| `Admin` | 后台与用户管理 | 可用，但偏内部管理 |
+
+当前内容格式主要有 4 类：
+
+### A. 聊天气泡内容
+
+- 文本气泡
+- 多段规划气泡
+- FAQ 提示
+- 插图型图片内容
+
+### B. 结构化城市内容
+
+- 城市卡片
+- 城市详情弹层
+- 餐饮 / 住宿 / 地图 / tips
+
+### C. 行程内容
+
+- 保存的 trip
+- 时间线内容
+- 历史记录
+
+### D. 工具内容
+
+- 工具卡片
+- 工具详情面板
+- 英文主显示 + 中国专属词保留
+
+---
+
+## 4. 当前技术架构
+
+## 4.1 技术栈
+
+| 层 | 技术 |
+|----|------|
+| 前端 | `HTML + CSS + Vanilla JS` |
+| 后端 | `Python WSGI` |
+| LLM | `DeepSeek V4 Flash` |
+| 地图 | `AMap` + `Leaflet fallback` |
+| 存储 | `SQLite`（当前活跃链路在 `api/auth.py`） |
+| 部署 | `Vercel` |
+| 测试 | `python3 -m unittest` + `node --test` |
+
+## 4.2 当前运行结构
+
+```text
+Frontend SPA
+  web/index.html
+  web/app.js
+  web/app.css
+        ↓
+Vercel WSGI Entry
+  api/index.py
+        ↓
+Core API Modules
+  api/auth.py
+  api/chat.py
+  api/cities.py
+  api/tools.py
+  api/visa.py
+  api/config.py
+        ↓
+Data + LLM
+  data/*.json
+  DeepSeek API
 ```
 
----
+## 4.3 当前最重要的代码文件
 
-## 5. API / Interface
+接手时优先看这些：
 
-### Backend Routes
+### 前端
 
-| Method | Endpoint | Description | Auth |
-|--------|----------|-------------|:----:|
-| GET | `/api/health` | Health check + version | No |
-| POST | `/api/chat` | SSE streaming chat | No |
-| GET | `/api/cities` | List all 36 cities | No |
-| GET | `/api/cities/:city` | City detail | No |
-| GET | `/api/cities/compare?cities=a,b` | Side-by-side city comparison | No |
-| GET | `/api/map` | City coordinates + POIs | No |
-| GET | `/api/config` | Client config (AMap keys, version) | No |
-| GET | `/api/estimate` | Price estimates (7 cities) | No |
-| POST | `/api/validate` | Trip validation | No |
-| GET | `/api/tools` | List travel tools | No |
-| GET | `/api/tools/:name` | Tool detail (packing/pricing/visa/phrases/emergency) | No |
-| GET | `/api/visa/info?nationality=X&destination=China` | Visa policy lookup | No |
-| POST | `/api/visa/generate` | Generate visa invitation letter | No |
-| GET | `/api/visa/countries` | List supported nationalities | No |
-| POST | `/api/auth/register` | Email/password registration | No |
-| POST | `/api/auth/login` | Email/password login | No |
-| POST | `/api/auth/logout` | Logout (invalidate token) | Yes |
-| GET | `/api/auth/me` | Current user profile | Yes |
-| POST | `/api/auth/google` | Google OAuth login | No |
-| POST | `/api/auth/forgot-password` | Password reset email | No |
-| POST | `/api/auth/reset-password` | Password reset confirm | Token |
-| PUT | `/api/auth/profile` | Update user profile | Yes |
-| GET | `/api/auth/trips` | List user trips | Yes |
-| POST | `/api/auth/trips` | Create/save trip | Yes |
-| DELETE | `/api/auth/trips/:id` | Delete trip | Yes |
-| GET | `/api/auth/chat` | List chat conversations | Yes |
-| POST | `/api/auth/chat` | Save chat conversation | Yes |
-| GET | `/api/auth/chat/:id` | Chat detail | Yes |
-| GET | `/api/admin/users` | List all users | Admin |
-| GET | `/api/admin/users/:id` | User detail | Admin |
-| DELETE | `/api/admin/users/:id` | Delete user | Admin |
-| GET | `/api/admin/stats` | Platform stats | Admin |
-| GET | `/api/admin/chat/:id` | Admin view chat detail | Admin |
-| GET | `/*` | Static files (web/ then static/) | No |
+- `web/index.html`
+- `web/app.js`
+- `web/app.css`
 
-### SSE Chat Event Types
+### 后端
 
-| Event | Payload | Description |
-|-------|---------|-------------|
-| `message` | `{"token": "..."}` | Streamed text token |
-| `message` | `{"split": true}` | Multi-bubble boundary |
-| `message` | `{"image": {"key": "..", "url": "..", "label": ".."}}` | Inline city/theme image |
-| `message` | `{"faq": {...}}` | FAQ match badge |
-| `message` | `{"done": true}` | Stream complete |
-| `error` | `{"error": "..."}` | Stream error |
+- `api/index.py`
+- `api/auth.py`
+- `api/chat.py`
+- `api/cities.py`
+- `api/tools.py`
+- `api/visa.py`
+
+### 数据
+
+- `data/cities.json`
+- `data/food.json`
+- `data/hotels.json`
+- `data/tools.json`
+- `data/faq.json`
 
 ---
 
-## 6. Key Config
+## 5. 当前已经达成的效果
 
-| Variable | Description | Source |
-|----------|-------------|-------|
-| `LLM_API_KEY` | DeepSeek API key | Vercel env |
-| `LLM_MODEL` | Model name (default: `deepseek-chat`) | Vercel env |
-| `LLM_BASE_URL` | API base (default: `https://api.deepseek.com/v1`) | Vercel env |
-| `AMAP_KEY` | Gaode (AMap) JS API key | Vercel env |
-| `AMAP_SECURITY_CODE` | Gaode security JS code | Vercel env |
-| `GOOGLE_CLIENT_ID` | Google OAuth client ID | Vercel env |
-| `SESSION_SECRET` | JWT signing secret | Vercel env |
-| `PORT` | Dev server port (default: 8080) | Local |
+从“产品阶段”看，目前已经实际达成这些效果：
 
-Fallback env vars: `DEEPSEEK_API_KEY`, `DEEPSEEK_MODEL`, `DEEPSEEK_BASE_URL`.
+### 1. 从功能原型变成了产品网站
+
+项目已经不是一个简单 demo，而是具备：
+
+- 首页
+- 聊天
+- 地图
+- 城市浏览
+- 行程保存
+- 工具页
+- 登录
+- 后台
+
+的一体化产品网站。
+
+### 2. 完成了英文原生化
+
+用户可见主内容已经不再以中文直出为主，站点现在更适合英文用户使用。
+
+### 3. 完成了两轮移动端优化
+
+网站不是只适配桌面端，已经开始认真考虑手机竖屏体验。
+
+### 4. 完成了一轮生产稳定性专项修复
+
+在 `v5.0.9` 中，已经围绕真实线上问题做过一轮稳定性补救，重点覆盖：
+
+- `Sign in`
+- bootstrap
+- 图片 fallback
+- loading / error 反馈
+- 手机端 bottom-nav 可见性
+
+### 5. 已形成较清晰的版本演进脉络
+
+从 `v5.0.1` 到 `v5.0.9`，文档、测试、界面、移动端、英文内容、稳定性都已经形成连续迭代路径。
 
 ---
 
-## 7. Core Logic / Data Flow
+## 6. 计划达成的效果
 
-### Chat Flow
+这部分是“项目原本希望继续往哪里走”，接手者不要只看当前成果。
 
+## 6.1 产品完成度方向
+
+当前已经可用，但还没到成熟产品状态。  
+后续更合理的目标是：
+
+1. 继续稳定线上体验
+2. 增强 `Trips / Cities / Tools / Chat` 之间的联动
+3. 让工具页从“信息展示”继续升级为“旅前工作台”
+4. 提高站点的商用品质与可持续维护性
+
+## 6.2 商用方向
+
+已经形成明确判断：
+
+- 当前继续保留 `Vercel`
+- 不立刻整站迁移
+- 商用升级首选路线为：
+  - `Vercel 前端`
+  - `独立后端 API`
+  - `托管数据库`
+  - `对象存储 + CDN`
+
+相关文档：
+
+- `docs/2026-06-20-commercial-upgrade-plan.md`
+
+## 6.3 体验方向
+
+计划继续达成这些效果：
+
+- 更稳定的登录、聊天和图片加载体验
+- 更强的城市到工具、行程到工具联动
+- 更适合商用的日志、监控、部署与资源治理
+
+---
+
+## 7. 过往迭代总结
+
+## 7.1 早期阶段
+
+### v3.x
+
+完成了基础产品骨架：
+
+- WSGI 后端
+- SPA 前端
+- DeepSeek 聊天
+- 地图
+- FAQ
+- 36 城知识库
+- Panda 风格基础 UI
+
+### v4.x
+
+项目进入“可用产品”阶段：
+
+- Auth
+- Trips
+- Chat History
+- Admin
+- Visa 工具
+- 城市对比
+- 时间线
+
+### v4.1.x
+
+关键方向转为**英文原生化**：
+
+- 用户可见内容翻译
+- 数据层英文化
+- 保留 `English（中文）` 专名展示
+
+## 7.2 本轮对话内完成的关键迭代
+
+### v5.0.1 → v5.0.3
+
+- 建立 foundation 测试基座
+- 修复 auth/admin/trips/config 契约问题
+- Tools 主导航接入
+- 文档、版本、测试同步开始变规范
+
+### v5.0.4
+
+- 首页、Cities、Trips 进入 `Editorial Atlas` 风格化结构
+
+### v5.0.5 → v5.0.6
+
+- 两轮手机端专项优化
+- 改善竖屏布局和单手操作体验
+
+### v5.0.7
+
+- 网站运行时主内容完成英文化
+
+### v5.0.8
+
+- Tools 从目录页升级为可展开详情的工具页
+
+### v5.0.9
+
+- 进行生产稳定性专项修复
+- 重点修复：
+  - `Sign in`
+  - 图片 fallback
+  - loading / error 壳层
+  - 手机端导航可见性
+
+## 7.3 最近关键提交
+
+| Commit | 说明 |
+|--------|------|
+| `585055f` | 新增商用升级方案文档 |
+| `f76796a` | 新增 `v5.0.9` 稳定性测试覆盖 |
+| `906c353` | `v5.0.9` 发布与文档收口 |
+| `043e8d6` | `v5.0.8` 工具页和英文化收尾 |
+| `0b92916` | `v5.0.7` 英文原生内容 |
+
+---
+
+## 8. 当前真实问题
+
+交接时一定要诚实，这部分是目前仍存在的现实问题。
+
+## 8.1 线上质量仍需要继续真实回归
+
+`v5.0.9` 已做了一轮稳定性修复，但仍建议继续做线上真机 / 真浏览器验证，重点看：
+
+- `Sign in`
+- 图片加载
+- tab 切换速度与反馈
+- 手机端底部导航
+- 多浏览器一致性
+
+## 8.2 产品闭环还不够强
+
+虽然页面很多，但几个关键能力之间的联动还不够成熟，尤其是：
+
+- `Cities → Tools → Chat`
+- `Trips → Tools`
+
+## 8.3 数据覆盖还不均匀
+
+- 预算数据只覆盖部分城市
+- 地图 POI 覆盖不完整
+- 某些工具或城市内容仍有继续扩充空间
+
+## 8.4 工程层仍有历史包袱
+
+### `web/app.js` 很重
+
+大部分主逻辑仍集中在一个大文件里。  
+后续可以做小范围收口，但不建议直接大重构。
+
+### `static/*` 与部分历史兼容层仍然存在
+
+这些文件不是全部都在当前主路径上，接手者必须先搞清楚“主链路”再改。
+
+### 仍有部署平台边界
+
+当前保留 `Vercel` 是正确的，但商用后要持续关注：
+
+- 冷启动
+- 流式接口可控性
+- 图片和资源治理
+- 日志和监控能力
+
+---
+
+## 9. 当前部署与商用判断
+
+## 9.1 当前部署策略
+
+当前明确保持：
+
+- **继续使用 `Vercel`**
+- **不立刻整站迁移**
+
+## 9.2 后续商用升级方向
+
+推荐路线已经写清楚：
+
+1. 当前继续保留 `Vercel`
+2. 后续优先迁出：
+   - 后端 API
+   - 数据库
+   - 图片与静态资源
+3. 是否整站迁移，等业务规模和商用程度明确后再决定
+
+对应文档：
+
+- `docs/2026-06-20-commercial-upgrade-plan.md`
+
+---
+
+## 10. 接手者上手建议
+
+## 10.1 第一天先做什么
+
+1. 读 `HANDOFF.md`
+2. 读 `README.md`
+3. 读 `CHANGELOG.md`
+4. 读 `docs/2026-06-20-commercial-upgrade-plan.md`
+5. 本地跑项目
+6. 跑测试
+
+推荐命令：
+
+```bash
+python3 -m unittest discover -s tests -v
+node --test web/tests/*.test.js
 ```
-User Input → detectCity() + setPandaMood() → addMessage(user)
-  → POST /api/chat {messages: [...], city: detected}
-  → Backend: _handle_chat()
-    → _match_faq(user_text) — optional FAQ expansion
-    → _build_system_prompt(city, faq_match) — inject knowledge base
-    → POST DeepSeek API (SSE stream with _yield_with_images)
-      → ---SPLIT--- markers → split event (new bubble)
-      → [img:city_key] markers → image event (inline city/food photo)
-      → regular text → token event (streamed characters)
-      → Backend "done" → done event
-  → Frontend: SSE reader
-    → token → currentBubble.innerHTML += token
-    → split → commit + append new bubble div
-    → image → render inline image bubble
-    → faq → append faq badge bubble
-    → done → finalize, enable input
+
+本地运行：
+
+```bash
+python3 -c "
+from api.index import app
+from wsgiref.simple_server import make_server
+httpd = make_server('', 8765, app)
+print('http://127.0.0.1:8765')
+httpd.serve_forever()
+"
 ```
 
-### Auth Flow
+## 10.2 第一天优先看哪些文件
 
-```
-Login via Google OAuth / Email+Password → POST /api/auth/google or /api/auth/login
-  → Backend verifies with Google, creates/retrieves user
-  → Returns JWT token + user profile
-  → Frontend stores in localStorage('vp_token')
-→ All /api/auth/* requests include Authorization: Bearer <token>
-→ Token validated on each request; user/trip/chat data persist in SQLite via api/auth.py
-→ Expired token → 401 → redirect to login
-```
+按这个顺序最合理：
 
-### Image Resolution
+1. `web/index.html`
+2. `web/app.js`
+3. `web/app.css`
+4. `api/index.py`
+5. `api/auth.py`
+6. `api/chat.py`
+7. `api/cities.py`
+8. `api/tools.py`
 
-AI outputs `[img:beijing]` or `[img:food-chengdu]` in stream. Backend resolves:
-1. `{key}.jpg` (exact match)
-2. `city-{key}.jpg` (city photo)
-3. `food-{key}.jpg` (food photo)
-→ Found: emit `image` SSE event → Frontend renders inline
-→ Not found: emit `token` with `[Label]` text fallback
+## 10.3 第一天不要做什么
 
----
-
-## 8. Frontend / UI Component Map
-
-```
-App (VP IIFE — web/app.js)
-├── Header
-│   ├── Logo + Panda avatar (mood-reactive)
-│   ├── Nav: Home / Chat / Map / Cities / Trips / Tools
-│   ├── Version badge (reads from /api/health)
-│   ├── Auth: Sign In button / User menu (avatar + logout)
-│   └── Theme toggle (🌙/☀️)
-├── Views
-│   ├── view-home: Atlas Hero + Trust Layer + City Rail + Planner Entry
-│   ├── view-chat: Full chat container + multi-bubble rendering + action rail
-│   ├── view-map: Full China overview (AMap or Leaflet)
-│   ├── view-trips: Recent / Saved grouped itineraries + timeline editor
-│   ├── view-cities: All 36 city cards grid
-│   └── view-tools: Travel toolkit cards (packing/visa/pricing/phrases/emergency)
-├── Overlays
-│   ├── chat-overlay (mobile): Slide-up chat panel
-│   ├── city-detail: City modal with tabs (overview/food/hotels/map/tips)
-│   ├── auth-modal: Sign In / Register / Forgot Password
-│   └── admin panel: web/admin.html
-├── Chat Container
-│   ├── Messages: msg-user, msg-bot, msg-image bubbles
-│   ├── Multi-bubble rendering with spacers
-│   ├── Typing indicator (panda bouncing) + stop button
-│   └── Suggested questions chips
-├── Static Modules (loaded via script tags)
-│   ├── auth.js — Google Sign-In, token management
-│   ├── chat.js — Chat view logic
-│   ├── landing.js — Home/landing view logic
-│   ├── map.js — Map view logic
-│   ├── profile.js — User profile view
-│   ├── trips.js — Saved trips view
-│   └── i18n.js — Bilingual labels (en/zh)
-├── Bottom Nav (mobile): Home / Chat / Map / Trips / Tools
-└── Footer: Credits, Clear Chat button
-```
-
-### Panda Mood System
-
-Chat response tokens trigger mood-based avatar changes:
-| Keyword Match | Mood | Emoji |
-|:--------------|:----:|:-----:|
-| eat/food/restaurant | food | 😋 |
-| price/cost/budget | money | 💰 |
-| visit/attraction/tour | sight | 🕶️ |
-| tip/advice/remember | tip | 📌 |
-| great/nice/perfect | happy | 😊 |
-| let me/maybe/option | thinking | 🤔 |
-| sorry/error/unable | sorry | 😅 |
-| hotel/stay/room | hotel | 🏨 |
-| flight/train/transport | transit | 🚄 |
+- 不要一上来重构整个前端
+- 不要一上来整站迁移
+- 不要在没搞清楚活跃链路前大改 `static/*`
+- 不要把兼容层误认成当前主入口
 
 ---
 
-## 9. Dependencies
+## 11. 推荐后续工作方向
 
-| Layer | Technology | Version |
-|-------|-----------|---------|
-| Backend | Python 3.11 (stdlib only) | — |
-| Frontend | Vanilla JS + CSS3 + HTML5 | — |
-| LLM | DeepSeek V4 Flash | `deepseek-chat` |
-| Auth | SQLite + JWT + Google OAuth | — |
-| Maps | AMap JS API v2 / Leaflet + CartoDB dark | — |
-| Icons | Google Material Icons + Emoji | — |
-| Fonts | Inter + Noto Sans SC (Google Fonts) | — |
-| Deployment | Vercel Serverless | `@vercel/python` |
-| Images | Wikimedia Commons (CC-licensed) | 50 JPEGs |
+## 11.1 继续做线上稳定性复测
 
-**Zero pip dependencies for backend.** Pure Python stdlib: `urllib`, `json`, `os`, `re`, `ssl`, `pathlib`, `sqlite3` (legacy), `hmac`, `base64`, `hashlib`, `datetime`.
+先把 `v5.0.9` 在线上设备和浏览器上的质量验证扎实。
 
-Frontend CDN deps: Leaflet.js, Google Sign-In (GSI), Google Fonts.
+## 11.2 提升产品完成度
 
----
+优先考虑：
 
-## 10. Next Steps
+- `Trips → Tools`
+- `Cities → Tools → Chat`
+- 更完整的旅行工作台体验
 
-| Pri | Feature | Complexity | Notes |
-|:---:|---------|:----------:|-------|
-| 🟡 | **Post-trip feedback** — Review submission, rating, tag system | Medium | PRD_USER_SYSTEM §6.5, Iter 48 |
-| 🟡 | **Expand ESTIMATE_DATA to all 36 cities** | Low | Only 7/36 have pricing data |
-| 🟡 | **MAP_DATA POIs for all cities** | Low | 8/36 cities have POI lists |
-| 🟡 | **Weather API integration** — api/weather.py exists but not used anywhere | Low | Wire into trip timeline |
-| 🟢 | **PWA full support** — manifest + sw.js exist but not wired | Medium | Add service worker registration, offline caching |
-| 🟢 | **Trip sharing** — Export as shareable link / text card | Medium | Social sharing |
-| 🟢 | **Expand knowledge base** — 36 → 50+ cities | High | More coverage = more useful |
-| 🟢 | **WeChat Mini Program / Telegram Bot** | High | Cross-platform expansion |
+## 11.3 做商用准备
+
+包括：
+
+- 后端独立部署方案
+- 图片与资源迁移方案
+- 更规范的数据库、日志和监控治理
 
 ---
 
-## 11. Troubleshooting
+## 12. 关键文档索引
 
-| Problem | Cause | Fix |
-|---------|-------|-----|
-| Login button not visible | `_updateAuthUI()` not called on page load | Should be fixed in v4.0.5+ |
-| Version mismatch between frontend and API | `/api/health` returns hardcoded version | Frontend reads version from API; update `api/index.py` version string |
-| Chat response empty | LLM API key missing or expired | Check `LLM_API_KEY` in Vercel env |
-| AMap not loading | Missing `AMAP_KEY` or `AMAP_SECURITY_CODE` env vars | Check Vercel env; app falls back to Leaflet |
-| City image not showing | AI used `[img:unknown_city]` where no image exists | Backend falls back to text label `[City Name]` |
-| Git push fails | HTTPS connection reset | Retry or use `git push -u origin main` |
-| Vercel build fails | Usually missing env vars in Vercel dashboard | Go to Vercel → Project → Settings → Environment Variables |
-| Admin can't login via Google | Admin must use email/password account | Register separately as email/password user |
+| 文档 | 用途 |
+|------|------|
+| `README.md` | 项目总览与快速启动 |
+| `CHANGELOG.md` | 版本与迭代历史 |
+| `HANDOFF.md` | 当前总交接文档 |
+| `docs/2026-06-20-commercial-upgrade-plan.md` | 商用升级路线 |
+| `docs/superpowers/specs/2026-06-20-production-stability-pass-design.md` | `v5.0.9` 稳定性专项设计 |
+| `docs/superpowers/plans/2026-06-20-production-stability-pass.md` | `v5.0.9` 实施计划 |
 
 ---
 
-## 12. References
+## 13. 最终结论
 
-| Resource | Link |
-|----------|------|
-| Live site | https://www.go2china.space |
-| GitHub repo | https://github.com/JTCAO515/VP-Hermes-Web |
-| Vercel dashboard | https://vercel.com/jtcao515/vise-panda-2 |
-| DeepSeek Console | https://platform.deepseek.com |
-| Product PRD | `./PRD_PRODUCT_ANALYSIS.md` |
-| User System PRD | `./docs/PRD_USER_SYSTEM.md` |
-| ADR docs | `./docs/adr/` |
-| PLAN | `./PLAN.md` |
-| Changelog | `./CHANGELOG.md` |
-| Hermes skill | `skill_view(name='handoff')` for resume workflow |
+当前这个项目已经不是“只有几个页面的 demo”，也不是“刚起步的空壳”。  
+它已经具备：
 
----
+- AI 旅行规划主链路
+- 城市知识库
+- 工具页
+- 用户系统
+- 行程存储
+- 管理后台
+- 英文原生内容
+- 移动端适配
+- 一轮生产稳定性修复
 
-*End of Handoff.*
+但它也还没有到完全成熟商用产品的状态。  
+它现在最准确的位置是：
+
+> **一个已经完成从功能原型走向产品网站的过渡阶段、可继续快速演进、且适合新接手者在当前基础上继续推进的项目。**
+
+对接手者来说，最重要的不是从零重做，而是：
+
+1. 先理解当前已经完成了什么  
+2. 先判断当前真正活跃的技术链路  
+3. 再继续做稳定性、联动与商用准备  
+
+当前部署策略保持不变：
+
+> **继续保留 `Vercel` 部署，后续按商用升级方案逐步演进。**
