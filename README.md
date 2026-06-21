@@ -120,6 +120,9 @@ See [CHANGELOG.md](CHANGELOG.md) for full version history.
 - [First-Week Takeover Checklist](docs/2026-06-20-first-week-takeover-checklist.md)
 - [High-Risk Files Guide](docs/2026-06-20-high-risk-files-guide.md)
 - [Production Regression Manual](docs/2026-06-20-production-regression-manual.md)
+- [Next 2-4 Weeks Priority Guide](docs/2026-06-20-next-2-4-weeks-priority-guide.md)
+- [Technical Debt Boundaries](docs/2026-06-20-technical-debt-boundaries.md)
+- [Module Ownership Guide](docs/2026-06-20-module-ownership-guide.md)
 
 ## Current Implementation Notes
 

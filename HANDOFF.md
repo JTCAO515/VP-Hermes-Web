@@ -202,9 +202,12 @@ api/auth.py / api/chat.py / api/cities.py / api/tools.py / api/visa.py
 3. 再读 [docs/2026-06-20-first-week-takeover-checklist.md](docs/2026-06-20-first-week-takeover-checklist.md)
 4. 再读 [docs/2026-06-20-high-risk-files-guide.md](docs/2026-06-20-high-risk-files-guide.md)
 5. 最后参考 [docs/2026-06-20-production-regression-manual.md](docs/2026-06-20-production-regression-manual.md)
-6. 再看 `README.md`
-7. 再看 `CHANGELOG.md`
-8. 最后跑测试和本地服务
+6. 再读 [docs/2026-06-20-next-2-4-weeks-priority-guide.md](docs/2026-06-20-next-2-4-weeks-priority-guide.md)
+7. 再读 [docs/2026-06-20-technical-debt-boundaries.md](docs/2026-06-20-technical-debt-boundaries.md)
+8. 再读 [docs/2026-06-20-module-ownership-guide.md](docs/2026-06-20-module-ownership-guide.md)
+9. 再看 `README.md`
+10. 再看 `CHANGELOG.md`
+11. 最后跑测试和本地服务
 
 ### 10.2 建议先跑的命令
 
@@ -238,6 +241,9 @@ httpd.serve_forever()
 | [docs/2026-06-20-first-week-takeover-checklist.md](docs/2026-06-20-first-week-takeover-checklist.md) | 新接手开发者首周进入清单 |
 | [docs/2026-06-20-high-risk-files-guide.md](docs/2026-06-20-high-risk-files-guide.md) | 高风险文件修改指南 |
 | [docs/2026-06-20-production-regression-manual.md](docs/2026-06-20-production-regression-manual.md) | 发布前后回归手册 |
+| [docs/2026-06-20-next-2-4-weeks-priority-guide.md](docs/2026-06-20-next-2-4-weeks-priority-guide.md) | 未来 2-4 周推荐迭代顺序 |
+| [docs/2026-06-20-technical-debt-boundaries.md](docs/2026-06-20-technical-debt-boundaries.md) | 技术债边界说明 |
+| [docs/2026-06-20-module-ownership-guide.md](docs/2026-06-20-module-ownership-guide.md) | 模块责任建议表 |
 | [docs/2026-06-20-commercial-upgrade-plan.md](docs/2026-06-20-commercial-upgrade-plan.md) | 商用升级路线 |
 | [docs/superpowers/specs/2026-06-20-production-stability-pass-design.md](docs/superpowers/specs/2026-06-20-production-stability-pass-design.md) | `v5.0.9` 稳定性专项设计 |
 | [docs/superpowers/plans/2026-06-20-production-stability-pass.md](docs/superpowers/plans/2026-06-20-production-stability-pass.md) | `v5.0.9` 实施计划 |
