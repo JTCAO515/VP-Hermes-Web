@@ -197,17 +197,18 @@ api/auth.py / api/chat.py / api/cities.py / api/tools.py / api/visa.py
 
 ### 10.1 第一天先做什么
 
-1. 先读 `HANDOFF.md`
-2. 再读 [docs/2026-06-20-engineering-handoff-notes.md](docs/2026-06-20-engineering-handoff-notes.md)
-3. 再读 [docs/2026-06-20-first-week-takeover-checklist.md](docs/2026-06-20-first-week-takeover-checklist.md)
-4. 再读 [docs/2026-06-20-high-risk-files-guide.md](docs/2026-06-20-high-risk-files-guide.md)
-5. 最后参考 [docs/2026-06-20-production-regression-manual.md](docs/2026-06-20-production-regression-manual.md)
-6. 再读 [docs/2026-06-20-next-2-4-weeks-priority-guide.md](docs/2026-06-20-next-2-4-weeks-priority-guide.md)
-7. 再读 [docs/2026-06-20-technical-debt-boundaries.md](docs/2026-06-20-technical-debt-boundaries.md)
-8. 再读 [docs/2026-06-20-module-ownership-guide.md](docs/2026-06-20-module-ownership-guide.md)
-9. 再看 `README.md`
-10. 再看 `CHANGELOG.md`
-11. 最后跑测试和本地服务
+1. 如果你不知道该先看哪份文档，先读 [docs/2026-06-20-agent-transfer-index.md](docs/2026-06-20-agent-transfer-index.md)
+2. 再读 `HANDOFF.md`
+3. 再读 [docs/2026-06-20-engineering-handoff-notes.md](docs/2026-06-20-engineering-handoff-notes.md)
+4. 再读 [docs/2026-06-20-first-week-takeover-checklist.md](docs/2026-06-20-first-week-takeover-checklist.md)
+5. 再读 [docs/2026-06-20-high-risk-files-guide.md](docs/2026-06-20-high-risk-files-guide.md)
+6. 最后参考 [docs/2026-06-20-production-regression-manual.md](docs/2026-06-20-production-regression-manual.md)
+7. 再读 [docs/2026-06-20-next-2-4-weeks-priority-guide.md](docs/2026-06-20-next-2-4-weeks-priority-guide.md)
+8. 再读 [docs/2026-06-20-technical-debt-boundaries.md](docs/2026-06-20-technical-debt-boundaries.md)
+9. 再读 [docs/2026-06-20-module-ownership-guide.md](docs/2026-06-20-module-ownership-guide.md)
+10. 再看 `README.md`
+11. 再看 `CHANGELOG.md`
+12. 最后跑测试和本地服务
 
 ### 10.2 建议先跑的命令
 
@@ -237,6 +238,7 @@ httpd.serve_forever()
 | [README.md](README.md) | 项目总览与快速启动 |
 | [CHANGELOG.md](CHANGELOG.md) | 版本与迭代历史 |
 | [HANDOFF.md](HANDOFF.md) | 当前总交接文档 |
+| [docs/2026-06-20-agent-transfer-index.md](docs/2026-06-20-agent-transfer-index.md) | 交接文档总目录页 |
 | [docs/2026-06-20-engineering-handoff-notes.md](docs/2026-06-20-engineering-handoff-notes.md) | 详尽工程接手附录 |
 | [docs/2026-06-20-first-week-takeover-checklist.md](docs/2026-06-20-first-week-takeover-checklist.md) | 新接手开发者首周进入清单 |
 | [docs/2026-06-20-high-risk-files-guide.md](docs/2026-06-20-high-risk-files-guide.md) | 高风险文件修改指南 |

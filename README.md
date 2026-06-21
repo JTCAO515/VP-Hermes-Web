@@ -115,6 +115,7 @@ See [CHANGELOG.md](CHANGELOG.md) for full version history.
 
 ## Planning Docs
 
+- [Agent Transfer Index](docs/2026-06-20-agent-transfer-index.md)
 - [Commercial Upgrade Plan](docs/2026-06-20-commercial-upgrade-plan.md)
 - [Engineering Handoff Notes](docs/2026-06-20-engineering-handoff-notes.md)
 - [First-Week Takeover Checklist](docs/2026-06-20-first-week-takeover-checklist.md)
