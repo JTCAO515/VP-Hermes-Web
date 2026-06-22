@@ -1,6 +1,15 @@
 # Changelog
 
+> **DEV TOOLCHAIN 演进史：**
+> - **v0–v1** — Trae IDE + AI 功能（字节跳动 IDE，国内版 Cursor）
+> - **v2** — Trae Solo（单 Agent 模式）
+> - **v3** — Hermes Agent + DeepSeek V4 Flash
+> - **v4** — Trae Work + 字节混合编码模型（Work 多 Agent 模式）
+> - **v5+** — Hermes Agent + DeepSeek V4 Pro/Flash
+
 ## v5.0.9 — 2026-06-20
+
+> **Built with:** Hermes Agent + DeepSeek V4 Pro/Flash
 
 ### Fixed
 - Repaired the production sign-in trigger and hardened the frontend bootstrap path
@@ -15,7 +24,10 @@
 ### Regression
 - Ran `python3 -m unittest discover -s tests -v` — 14 backend tests passed
 - Ran `node --test web/tests/*.test.js` — 28 frontend structure/stability tests passed
+
 ## v5.0.8 — 2026-06-19
+
+> **Built with:** Hermes Agent + DeepSeek V4 Pro/Flash
 
 ### Added
 - Expandable English-first toolkit detail sheets for packing, pricing, visa, phrases, and emergency guidance
@@ -34,6 +46,8 @@
 
 ## v5.0.7 — 2026-06-19
 
+> **Built with:** Hermes Agent + DeepSeek V4 Pro/Flash
+
 ### Added
 - 英文原生网站内容收口：城市、餐饮、住宿等运行时主数据改为自然英文表达
 - 特殊地名与中文专属词采用 `English（中文）` 的显示格式
@@ -51,6 +65,8 @@
 
 ## v5.0.6 — 2026-06-19
 
+> **Built with:** Hermes Agent + DeepSeek V4 Pro/Flash
+
 ### Added
 - Chat 新增 `chat-quick-scroll` 与 `chat-quick-scroll-btn`，支持更快回到最新消息
 - Trips 卡片新增 `trip-card-mobile-head` 与 `trip-card-mobile-actions`，强化拇指优先的操作区
@@ -67,6 +83,8 @@
 - 执行 `node --test web/tests/*.test.js`，前端 18 项结构测试通过
 
 ## v5.0.5 — 2026-06-19
+
+> **Built with:** Hermes Agent + DeepSeek V4 Pro/Flash
 
 ### Added
 - 新增移动端竖屏结构钩子：`hero-content-portrait`、`hero-note-card-compact`、`planner-entry-card-compact`
@@ -87,6 +105,8 @@
 
 ## v5.0.4 — 2026-06-19
 
+> **Built with:** Hermes Agent + DeepSeek V4 Pro/Flash
+
 ### Added
 - 首页新增 `hero-metrics` 与 `editorial-lead` 结构，强化 Editorial Atlas 的双栏叙事与指标信息层
 - Cities 新增 `cities-filter-rail`，支持 `all / history / food / nature / urban` 过滤导轨
@@ -103,6 +123,8 @@
 
 ## v5.0.3 — 2026-06-19
 
+> **Built with:** Hermes Agent + DeepSeek V4 Pro/Flash
+
 ### Changed
 - 同步 `README.md`、`HANDOFF.md`、`CHANGELOG.md`，将当前实现状态更新为 foundation 契约测试基座 + `Editorial Atlas` 首页/主页面结构推进到 `v5.0.3`
 - 文档口径明确当前活跃持久化链路为 `api/auth.py` 中的 SQLite（auth / session / trips / chat history）
@@ -118,6 +140,8 @@
 
 ## v5.0.2 — 2026-06-19
 
+> **Built with:** Hermes Agent + DeepSeek V4 Pro/Flash
+
 ### Added
 - 新增 `tests/test_config_contract.py`，覆盖 `/api/health` 与 `/api/config` 的版本一致性及 `google_client_id` 行为
 - 新增 `web/tests/auth-state.test.js`，覆盖 Tools 视图接入与导航结构存在性
@@ -132,6 +156,8 @@
 - 修复 Tools 相关代码存在但页面未接入的结构脱节问题
 
 ## v5.0.1 — 2026-06-19
+
+> **Built with:** Hermes Agent + DeepSeek V4 Pro/Flash
 
 ### Added
 - 后端与前端测试基座：新增 `tests/` 与 `web/tests/`，覆盖 auth/admin/trips/chat 关键契约与结构检查
@@ -149,7 +175,62 @@
 - 修复聊天 `split` 流程中的 `typingId` 重赋值问题
 - 修复聊天历史查看器与主聊天区重复使用 `chat-messages` id 的问题
 
+## v4.1.2 — 2026-06-19
+
+> **Built with:** Trae Work + 字节混合编码模型
+
+### Added
+- 翻译剩余知识库描述：景点贴士、美食描述、菜系分类英文化
+- 翻译 Tips、Emergency、Transport、Phrases 知识库正文
+- 更新 `HANDOFF.md` 反映 v4.1.x 完整英语化状态
+
+### Changed
+- `data/knowledge/attractions.py`、`data/knowledge/food.py` 中文描述全部转为英文
+- `data/knowledge/tips.py`、`data/knowledge/emergency.py`、`data/knowledge/phrases.py`、`data/knowledge/transport.py` 文案英语化
+- 版本号统一升级为 `v4.1.2`，同步到 API 和前端
+
+## v4.1.1 — 2026-06-19
+
+> **Built with:** Trae Work + 字节混合编码模型
+
+### Added
+- 翻译知识库标题字段、`CUISINE_TYPES` 枚举、Python docstrings
+
+### Changed
+- `data/knowledge/food.py`、`data/knowledge/packing.py` 内部标识符与注释英文化
+
+### Fixed
+- 修复知识库内残留中文标识符导致的英文原生链路不完整
+
+## v4.1.0 — 2026-06-19
+
+> **Built with:** Trae Work + 字节混合编码模型
+
+### Added
+- 全站中文→英文翻译：除中文专属地名保留 `English（中文）` 格式外，所有运行时文案改为原生英文
+- `data/knowledge/cities.py` 城市知识库完整英文化（City → Attractions → Tips 全链路）
+- `data/tools/foreigner_guide.py`、`hotels.py`、`packing.py`、`pricing.py`、`travel_tools.py`、`visa_guide.py` 工具描述英文化
+- 系统 Prompt 内互动指引与探索建议改英文
+
+### Changed
+- 8 个知识库/工具文件、427 行中文文案→英文，418 行删除
+- 版本号从 v4.0.x → v4.1.0，标记 English-native 里程碑
+
+## v4.0.6 — 2026-06-19
+
+> **Built with:** Trae Work + 字节混合编码模型
+
+### Fixed
+- 修复登录后 Auth 按钮可见性问题（前端状态同步与 API 返回版本不匹配）
+- 修复 API 版本号与前端显示不一致（API 显示 v4.0.5，前端显示旧版本）
+
+### Changed
+- `api/index.py` 版本号同步至前端展示
+- `web/app.js` 登录/登出后按钮状态刷新逻辑加固
+
 ## v4.0.5 — 2026-06-19
+
+> **Built with:** Trae Work + 字节混合编码模型
 
 ### Added
 - B5: 签证材料包 MVP — `data/visa_policies.json`（美/英/澳/加/申根 5 国政策）
@@ -159,6 +240,8 @@
 
 ## v4.0.4 — 2026-06-19
 
+> **Built with:** Trae Work + 字节混合编码模型
+
 ### Added
 - B4: 熊猫导游表情系统 — SSE 流中根据关键词动态切换熊猫表情
 - B4: 10 种情绪（😋美食/💰价格/🕶️景点/📌提示/😊开心/🤔思考/😅抱歉/🏨酒店/🚄交通）
@@ -166,6 +249,8 @@
 - B4: 流结束后自动恢复默认表情（🐼）
 
 ## v4.0.3 — 2026-06-19
+
+> **Built with:** Trae Work + 字节混合编码模型
 
 ### Added
 - B3: 城市对比模式 — `GET /api/cities/compare?cities=a,b` 后端端点
@@ -175,12 +260,16 @@
 
 ## v4.0.2 — 2026-06-19
 
+> **Built with:** Trae Work + 字节混合编码模型
+
 ### Added
 - B2: Trip Timeline 可视化 — `web/trip-timeline.js` + `web/trip-timeline.css`
 - B2: AI 行程回复自动渲染为垂直时间线卡片（按活动类型颜色编码）
 - B2: 一键复制行程（Timeline 上的 Copy 按钮）
 
 ## v4.0.1 — 2026-06-19
+
+> **Built with:** Trae Work + 字节混合编码模型
 
 ### Added
 - B1a: Auth 系统加固 — `POST /api/auth/logout` 端点（后端删除 token）
